@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Phân công Giảng dạy - Hệ thống</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/giangvien.css">
+    <link rel="stylesheet" href="../css/monhoc.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+
+<body>
+    <div class="sidebar" id="sidebar">
+        <div>
+            <div class="header">
+                <img src="../pictures/admin.jpg" alt="">
+                <div class="info">
+                    <strong>Admin</strong><br>
+                </div>
+            </div>
+            <div class="menu">
+                <a href="../admin/admin.html" class="menu-item"><i class="fa-solid fa-user"></i><span>Quản lý tài
+                        khoản</span></a>
+                <a href="../admin/student.html" class="menu-item"><i class="fas fa-chart-bar"></i><span>Quản lý sinh
+                        viên</span></a>
+                <a href="../admin/giangvienadmin.html" class="menu-item"><i
+                        class="fa-solid fa-graduation-cap"></i><span>Quản lý giảng viên</span></a>
+                <a href="../admin/khoa.html" class="menu-item"><i class="fa-solid fa-building"></i><span>Quản lý
+                        khoa</span></a>
+                <a href="../admin/lophoc.html" class="menu-item"><i class="fas fa-heart"></i><span>Quản lý lớp
+                        học</span></a>
+                <a href="../admin/monhoc.html" class="menu-item"><i class="fas fa-wallet"></i><span>Quản lý môn
+                        học</span></a>
+                <a href="../admin/diem.html" class="menu-item"><i class="fa-solid fa-paintbrush"></i><span>Quản lý
+                        Điểm</span></a>
+                <a href="../admin/phancong.html" class="menu-item active"><i class="fas fa-tasks"></i><span>Phân công
+                        giảng dạy</span></a>
+                <a href="../admin/lichthi.html" class="menu-item"><i class="fa-solid fa-bell"></i><span>Quản lý lịch
+                        thi</span></a>
+                <a href="../admin/phanhoi.html" class="menu-item"><i class="fa-solid fa-comments"></i><span>Quản lý phản 
+                        hồi</span></a>
+            </div>
+        </div>
+        <div class="bottom">
+            <div class="menu-item" id="logout-btn"><i class="fas fa-sign-out-alt"></i><span>Thoát</span></div>
+            <div class="toggle-theme">
+                <i class="fas fa-moon"></i><span>Chế Độ</span>
+                <label class="switch">
+                    <input type="checkbox" id="theme-toggle">
+                </label>
+            </div>
+            <div class="toggle-sidebar">
+                <i class="fas fa-angle-double-left" id="collapse-icon"></i><span></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="text-center">
+            <h1>Quản lý Phân công Giảng dạy 📚</h1>
+        </div>
+
+        <!-- Dashboard Stats -->
+        <div class="dashboard-section">
+            <div class="stats-cards">
+                <div class="stat-card stat-card-purple">
+                    <div class="stat-card-content">
+                        <div class="stat-info">
+                            <p class="stat-label">Tổng phân công</p>
+                            <h2 id="total-phancong" class="stat-value">0</h2>
+                        </div>
+                        <i class="fas fa-tasks stat-icon"></i>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-card-pink">
+                    <div class="stat-card-content">
+                        <div class="stat-info">
+                            <p class="stat-label">Giảng viên</p>
+                            <h2 id="total-giangvien" class="stat-value">0</h2>
+                        </div>
+                        <i class="fas fa-users stat-icon"></i>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-card-blue">
+                    <div class="stat-card-content">
+                        <div class="stat-info">
+                            <p class="stat-label">Lớp học</p>
+                            <h2 id="total-lophoc" class="stat-value">0</h2>
+                        </div>
+                        <i class="fas fa-chalkboard stat-icon"></i>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-card-orange">
+                    <div class="stat-card-content">
+                        <div class="stat-info">
+                            <p class="stat-label">Môn học</p>
+                            <h2 id="total-monhoc" class="stat-value">0</h2>
+                        </div>
+                        <i class="fas fa-book stat-icon"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="charts-container">
+                <div class="chart-card">
+                    <h3><i class="fas fa-chart-bar"></i> Phân bố phân công theo giảng viên</h3>
+                    <canvas id="chart-giangvien"></canvas>
+                </div>
+
+                <div class="chart-card">
+                    <h3><i class="fas fa-chart-pie"></i> Phân bố theo lớp học</h3>
+                    <canvas id="chart-lophoc"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-bar">
+            <button id="add-phancong-btn" class="primary-btn"><i class="fas fa-plus"></i> Thêm Phân công</button>
+
+            <button id="import-btn" class="primary-btn" style="margin-right: 10px;">
+                <i class="fas fa-upload"></i> Import từ File
+            </button>
+            <input type="file" id="import-file" accept=".xlsx,.csv" style="display: none;">
+
+            <div class="search-bar">
+                <input type="text" id="search-input" placeholder="Tìm kiếm theo Lớp, GV, Môn...">
+                <button id="search-btn"><i class="fas fa-search"></i></button>
+            </div>
+
+            <button id="export-btn" class="secondary-btn" style="margin-left: auto;">
+                <i class="fas fa-download"></i> Export ra Excel</button>
+
+            <div class="filter-section">
+                <select id="filter-maKhoa" class="filter-select">
+                    <option value="">Tất cả Khoa</option>
+                </select>
+                <select id="filter-maLop" class="filter-select">
+                    <option value="">Tất cả Lớp</option>
+                </select>
+                <select id="filter-maGV" class="filter-select">
+                    <option value="">Tất cả Giảng viên</option>
+                </select>
+                <button id="apply-filter" class="primary-btn"><i class="fas fa-filter"></i> Áp dụng</button>
+                <button id="clear-filter" class="secondary-btn"><i class="fas fa-times"></i> Xóa lọc</button>
+            </div>
+        </div>
+
+        <!-- Bulk Actions -->
+        <div class="bulk-actions">
+            <div id="selected-count">Không có mục nào được chọn</div>
+            <div>
+                <button id="bulk-delete-btn" class="bulk-btn bulk-delete" disabled><i class="fas fa-trash"></i> Xóa đã
+                    chọn</button>
+                <button id="bulk-export-btn" class="bulk-btn bulk-export" disabled>
+                    <i class="fas fa-download"></i> Xuất đã chọn
+                </button>
+            </div>
+        </div>
+
+        <div class="table-card">
+            <h2 class="text-center">Danh sách Phân công Giảng dạy</h2>
+            <table id="giangvien-table" class="display">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="select-all"></th>
+                        <th>ID</th>
+                        <th>Lớp học</th>
+                        <th>Môn học</th>
+                        <th>Giảng viên</th>
+                        <th>Học kỳ</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="loading-spinner" class="spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Đang tải...</p>
+        </div>
+    </div>
+
+    <!-- Modal Thêm/Sửa Phân công -->
+    <div id="phancong-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2 id="modal-title">Thêm Phân công mới</h2>
+            <form id="phancong-form">
+                <input type="hidden" id="phancong-id-hidden">
+
+                <div class="form-group">
+                    <label for="maKhoa-form">Khoa:</label>
+                    <select id="maKhoa-form" required>
+                        <option value="">-- Chọn khoa --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="maLop">Lớp học:</label>
+                    <select id="maLop" required>
+                        <option value="">-- Chọn lớp học --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="maMH">Môn học:</label>
+                    <select id="maMH" required>
+                        <option value="">-- Chọn môn học --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="maGV">Giảng viên:</label>
+                    <select id="maGV" required>
+                        <option value="">-- Chọn giảng viên --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="hocKy">Học Kỳ:</label>
+                    <input type="text" id="hocKy" placeholder="VD: HK1-2025" required>
+                </div>
+
+                <button type="submit" id="submit-btn">Thêm</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Xem Chi tiết Phân công -->
+    <div id="phancong-detail-modal" class="modal">
+        <div class="modal-content phancong-modal-content">
+            <span class="close-btn-detail">&times;</span>
+            <h2 id="detail-title">Chi tiết Phân công</h2>
+
+            <div id="detail-content">
+                <div class="detail-section">
+                    <h3 class="section-title"><i class="fas fa-info-circle"></i> Thông tin cơ bản</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <strong>Lớp học:</strong> <span id="detail-lophoc">-</span>
+                        </div>
+                        <div class="info-item">
+                            <strong>Môn học:</strong> <span id="detail-monhoc">-</span>
+                        </div>
+                        <div class="info-item">
+                            <strong>Giảng viên:</strong> <span id="detail-giangvien">-</span>
+                        </div>
+                        <div class="info-item">
+                            <strong>Học kỳ:</strong> <span id="detail-hocky">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h3 class="section-title"><i class="fas fa-calendar"></i> Lịch giảng dạy</h3>
+                    <div class="table-responsive">
+                        <table id="detail-lich-table">
+                            <thead>
+                                <tr>
+                                    <th>Thứ</th>
+                                    <th>Tiết</th>
+                                    <th>Số tiết</th>
+                                    <th>Phòng học</th>
+                                    <th>Ghi chú</th>
+                                    <th>Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody id="detail-lich-tbody">
+                                <tr>
+                                    <td colspan="6" class="no-data">Chưa có lịch giảng dạy</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <button type="button" id="add-lich-btn" class="primary-btn" style="margin-top: 15px;">
+                        <i class="fas fa-plus"></i> Thêm Lịch
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Thêm Lịch Giảng Dạy -->
+    <div id="lich-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn-lich">&times;</span>
+            <h2 id="lich-modal-title">Thêm Lịch Giảng Dạy</h2>
+            <form id="lich-form">
+                <input type="hidden" id="lich-id-phan-cong">
+                <input type="hidden" id="lich-id-hidden">
+
+                <div class="form-group">
+                    <label for="lich-thu-tuan">Thứ trong tuần: <span style="color: var(--danger);">*</span></label>
+                    <select id="lich-thu-tuan" required>
+                        <option value="">-- Chọn thứ --</option>
+                        <option value="2">Thứ 2</option>
+                        <option value="3">Thứ 3</option>
+                        <option value="4">Thứ 4</option>
+                        <option value="5">Thứ 5</option>
+                        <option value="6">Thứ 6</option>
+                        <option value="7">Thứ 7</option>
+                        <option value="8">Chủ nhật</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="lich-tiet">Tiết bắt đầu: <span style="color: var(--danger);">*</span></label>
+                    <input type="number" id="lich-tiet" min="1" max="12" placeholder="Nhập tiết (1-12)" required>
+                    <small class="form-helper-text">Tiết học trong ngày (từ 1 đến 12)</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="lich-so-tiet">Số tiết: <span style="color: var(--danger);">*</span></label>
+                    <input type="number" id="lich-so-tiet" min="1" max="5" placeholder="Nhập số tiết (1-5)" required>
+                    <small class="form-helper-text">Số tiết liên tiếp (tối đa 5 tiết)</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="lich-phong">Phòng học:</label>
+                    <input type="text" id="lich-phong" placeholder="VD: A1-101, B2-205, ...">
+                </div>
+
+                <div class="form-group">
+                    <label for="lich-ghichu">Ghi chú:</label>
+                    <textarea id="lich-ghichu" rows="3" placeholder="Nhập ghi chú (nếu có)..."></textarea>
+                </div>
+
+                <button type="submit" id="lich-submit-btn">Thêm Lịch</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="../js/script.js"></script>
+    <script>
+        // phancong.js - Frontend script cho Quản lý Phân công Giảng dạy (Cải tiến)
+        $(document).ready(function () {
+            const API_BASE_URL = '/api/phancong';
+            let dataTable;
+            let phancongData = [];
+            let currentFilters = {};
+            let chartGiangVien = null;
+            let chartLopHoc = null;
+            let selectedPhanCong = null;
+
+            // Cache dữ liệu
+            let allKhoas = [];
+            let allLops = [];
+            let allMonhocs = [];
+            let allGiangviens = [];
+
+            // Modal Elements
+            const phancongModal = document.getElementById('phancong-modal');
+            const phancongDetailModal = document.getElementById('phancong-detail-modal');
+            const lichModal = document.getElementById('lich-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const phancongForm = document.getElementById('phancong-form');
+            const lichForm = document.getElementById('lich-form');
+            const submitBtn = document.getElementById('submit-btn');
+            const addBtn = document.getElementById('add-phancong-btn');
+            const closeBtn = document.querySelector('.close-btn');
+            const closeDetailBtn = document.querySelector('.close-btn-detail');
+            const closeLichBtn = document.querySelector('.close-btn-lich');
+
+            // Form Inputs
+            const idHiddenInput = document.getElementById('phancong-id-hidden');
+            const maKhoaFormInput = document.getElementById('maKhoa-form');
+            const maLopInput = document.getElementById('maLop');
+            const maMHInput = document.getElementById('maMH');
+            const maGVInput = document.getElementById('maGV');
+            const hocKyInput = document.getElementById('hocKy');
+
+            // Filter Elements
+            const filterMaKhoa = document.getElementById('filter-maKhoa');
+            const filterMaGV = document.getElementById('filter-maGV');
+            const filterMaLop = document.getElementById('filter-maLop');
+            const applyFilterBtn = document.getElementById('apply-filter');
+            const clearFilterBtn = document.getElementById('clear-filter');
+            const searchInput = document.getElementById('search-input');
+            const searchBtn = document.getElementById('search-btn');
+            const exportBtn = document.getElementById('export-btn');
+
+            // Lich Form Inputs
+            const lichIdPhanCong = document.getElementById('lich-id-phan-cong');
+            const lichIdHidden = document.getElementById('lich-id-hidden');
+            const lichThuTuan = document.getElementById('lich-thu-tuan');
+            const lichTiet = document.getElementById('lich-tiet');
+            const lichSoTiet = document.getElementById('lich-so-tiet');
+            const lichPhong = document.getElementById('lich-phong');
+            const lichGhiChu = document.getElementById('lich-ghichu');
+            const lichSubmitBtn = document.getElementById('lich-submit-btn');
+            const addLichBtn = document.getElementById('add-lich-btn');
+
+            const importBtn = document.getElementById('import-btn');
+            const importFileInput = document.getElementById('import-file');
+            let isUploading = false;
+
+            // ========== UTILITY FUNCTIONS ==========
+            function showLoading() {
+                document.getElementById('loading-spinner').style.display = 'flex';
+            }
+
+            function hideLoading() {
+                document.getElementById('loading-spinner').style.display = 'none';
+            }
+
+            function updateBulkActions() {
+                const selectedCheckboxes = $('.select-row:checked');
+                const count = selectedCheckboxes.length;
+                const totalRows = $('.select-row').length;
+
+                $('#selected-count').text(count === 0 ? 'Không có mục nào được chọn' : `${count} mục được chọn (trong ${totalRows})`);
+
+                const bulkDiv = $('.bulk-actions');
+                const bulkButtons = $('#bulk-delete-btn, #bulk-export-btn'); // THÊM export btn
+
+                if (count > 0) {
+                    bulkDiv.css('display', 'flex');
+                    bulkButtons.prop('disabled', false);
+                } else {
+                    bulkDiv.css('display', 'none');
+                    bulkButtons.prop('disabled', true);
+                }
+            }
+
+            // ========== DASHBOARD STATS ==========
+            async function loadDashboardStats() {
+                try {
+                    const response = await fetch(API_BASE_URL);
+                    if (!response.ok) throw new Error('Lỗi tải dữ liệu');
+
+                    const data = await response.json();
+                    const totalPhancong = Array.isArray(data) ? data.length : 0;
+                    document.getElementById('total-phancong').textContent = totalPhancong;
+
+                    const giangVienSet = new Set();
+                    const lopHocSet = new Set();
+                    const monHocSet = new Set();
+
+                    data.forEach(pc => {
+                        if (pc.maGV) giangVienSet.add(pc.maGV);
+                        if (pc.maLop) lopHocSet.add(pc.maLop);
+                        if (pc.maMH) monHocSet.add(pc.maMH);
+                    });
+
+                    document.getElementById('total-giangvien').textContent = giangVienSet.size;
+                    document.getElementById('total-lophoc').textContent = lopHocSet.size;
+                    document.getElementById('total-monhoc').textContent = monHocSet.size;
+
+                    renderGiangVienChart(data);
+                    renderLopHocChart(data);
+
+                } catch (error) {
+                    console.error('Lỗi tải thống kê:', error);
+                }
+            }
+
+            function renderGiangVienChart(data) {
+                const groupedByGV = {};
+                data.forEach(pc => {
+                    if (pc.maGV) {
+                        const key = `${pc.maGV} - ${pc.hoTen || ''}`;
+                        groupedByGV[key] = (groupedByGV[key] || 0) + 1;
+                    }
+                });
+
+                const ctx = document.getElementById('chart-giangvien').getContext('2d');
+                if (chartGiangVien) chartGiangVien.destroy();
+
+                chartGiangVien = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(groupedByGV),
+                        datasets: [{
+                            label: 'Số phân công',
+                            data: Object.values(groupedByGV),
+                            backgroundColor: [
+                                'rgba(102, 126, 234, 0.8)',
+                                'rgba(240, 147, 251, 0.8)',
+                                'rgba(79, 172, 254, 0.8)',
+                                'rgba(250, 112, 154, 0.8)',
+                                'rgba(254, 225, 64, 0.8)'
+                            ],
+                            borderWidth: 0,
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true } }
+                    }
+                });
+            }
+
+            function renderLopHocChart(data) {
+                const groupedByLop = {};
+                data.forEach(pc => {
+                    if (pc.maLop) {
+                        const key = `${pc.maLop} - ${pc.tenLop || ''}`;
+                        groupedByLop[key] = (groupedByLop[key] || 0) + 1;
+                    }
+                });
+
+                const ctx = document.getElementById('chart-lophoc').getContext('2d');
+                if (chartLopHoc) chartLopHoc.destroy();
+
+                chartLopHoc = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(groupedByLop),
+                        datasets: [{
+                            data: Object.values(groupedByLop),
+                            backgroundColor: [
+                                'rgba(102, 126, 234, 0.8)',
+                                'rgba(240, 147, 251, 0.8)',
+                                'rgba(79, 172, 254, 0.8)',
+                                'rgba(250, 112, 154, 0.8)',
+                                'rgba(254, 225, 64, 0.8)'
+                            ],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+            }
+
+            // ========== LOAD DROPDOWNS ==========
+            async function loadAllData() {
+                try {
+                    const [khoas, lops, monhocs, giangviens] = await Promise.all([
+                        fetch('/api/khoas').then(r => r.json()),
+                        fetch(`${API_BASE_URL}/lops`).then(r => r.json()),
+                        fetch(`${API_BASE_URL}/monhocs`).then(r => r.json()),
+                        fetch(`${API_BASE_URL}/giangviens`).then(r => r.json())
+                    ]);
+
+                    allKhoas = khoas;
+                    allLops = lops;
+                    allMonhocs = monhocs;
+                    allGiangviens = giangviens;
+
+                    // Populate filter khoa
+                    filterMaKhoa.innerHTML = '<option value="">Tất cả Khoa</option>';
+                    khoas.forEach(khoa => {
+                        const option = document.createElement('option');
+                        option.value = khoa.maKhoa;
+                        option.textContent = khoa.tenKhoa;
+                        filterMaKhoa.appendChild(option);
+                    });
+
+                    // Populate form khoa
+                    maKhoaFormInput.innerHTML = '<option value="">-- Chọn khoa --</option>';
+                    khoas.forEach(khoa => {
+                        const option = document.createElement('option');
+                        option.value = khoa.maKhoa;
+                        option.textContent = khoa.tenKhoa;
+                        maKhoaFormInput.appendChild(option);
+                    });
+
+                    updateFilterOptions();
+                } catch (error) {
+                    console.error('Lỗi tải dữ liệu:', error);
+                    alert('Lỗi khi tải dữ liệu. Vui lòng kiểm tra kết nối.');
+                }
+            }
+
+            // Update filter options based on selected khoa
+            function updateFilterOptions() {
+                const selectedKhoa = filterMaKhoa.value;
+
+                // Filter lops
+                filterMaLop.innerHTML = '<option value="">Tất cả Lớp</option>';
+                const filteredLops = selectedKhoa
+                    ? allLops.filter(lop => lop.maKhoa === selectedKhoa)
+                    : allLops;
+
+                filteredLops.forEach(lop => {
+                    const option = document.createElement('option');
+                    option.value = lop.maLop;
+                    option.textContent = `${lop.maLop} - ${lop.tenLop}`;
+                    filterMaLop.appendChild(option);
+                });
+
+                // Filter giangviens
+                filterMaGV.innerHTML = '<option value="">Tất cả Giảng viên</option>';
+                const filteredGVs = selectedKhoa
+                    ? allGiangviens.filter(gv => gv.maKhoa === selectedKhoa)
+                    : allGiangviens;
+
+                filteredGVs.forEach(gv => {
+                    const option = document.createElement('option');
+                    option.value = gv.maGV;
+                    option.textContent = `${gv.maGV} - ${gv.hoTen}`;
+                    filterMaGV.appendChild(option);
+                });
+            }
+
+            // Update form dropdowns based on selected khoa
+            function updateFormOptions() {
+                const selectedKhoa = maKhoaFormInput.value;
+
+                // Update lops
+                maLopInput.innerHTML = '<option value="">-- Chọn lớp học --</option>';
+                const filteredLops = selectedKhoa
+                    ? allLops.filter(lop => lop.maKhoa === selectedKhoa)
+                    : allLops;
+
+                filteredLops.forEach(lop => {
+                    const option = document.createElement('option');
+                    option.value = lop.maLop;
+                    option.textContent = `${lop.maLop} - ${lop.tenLop}`;
+                    option.dataset.maKhoa = lop.maKhoa;
+                    maLopInput.appendChild(option);
+                });
+
+                // Update monhocs
+                maMHInput.innerHTML = '<option value="">-- Chọn môn học --</option>';
+                const filteredMHs = selectedKhoa
+                    ? allMonhocs.filter(mh => mh.maKhoa === selectedKhoa)
+                    : allMonhocs;
+
+                filteredMHs.forEach(mh => {
+                    const option = document.createElement('option');
+                    option.value = mh.maMH;
+                    option.textContent = `${mh.maMH} - ${mh.tenMH}`;
+                    maMHInput.appendChild(option);
+                });
+
+                // Update giangviens
+                maGVInput.innerHTML = '<option value="">-- Chọn giảng viên --</option>';
+                const filteredGVs = selectedKhoa
+                    ? allGiangviens.filter(gv => gv.maKhoa === selectedKhoa)
+                    : allGiangviens;
+
+                filteredGVs.forEach(gv => {
+                    const option = document.createElement('option');
+                    option.value = gv.maGV;
+                    option.textContent = `${gv.maGV} - ${gv.hoTen}`;
+                    maGVInput.appendChild(option);
+                });
+            }
+
+            // Update form dropdowns when lop is selected (load monhoc and gv from lop's khoa)
+            function updateFormByLop() {
+                const selectedLop = maLopInput.value;
+                if (!selectedLop) return;
+
+                const lop = allLops.find(l => l.maLop === selectedLop);
+                if (!lop || !lop.maKhoa) return;
+
+                // Update khoa dropdown
+                maKhoaFormInput.value = lop.maKhoa;
+
+                // Update monhocs based on khoa
+                maMHInput.innerHTML = '<option value="">-- Chọn môn học --</option>';
+                const filteredMHs = allMonhocs.filter(mh => mh.maKhoa === lop.maKhoa);
+                filteredMHs.forEach(mh => {
+                    const option = document.createElement('option');
+                    option.value = mh.maMH;
+                    option.textContent = `${mh.maMH} - ${mh.tenMH}`;
+                    maMHInput.appendChild(option);
+                });
+
+                // Update giangviens based on khoa
+                maGVInput.innerHTML = '<option value="">-- Chọn giảng viên --</option>';
+                const filteredGVs = allGiangviens.filter(gv => gv.maKhoa === lop.maKhoa);
+                filteredGVs.forEach(gv => {
+                    const option = document.createElement('option');
+                    option.value = gv.maGV;
+                    option.textContent = `${gv.maGV} - ${gv.hoTen}`;
+                    maGVInput.appendChild(option);
+                });
+            }
+
+            // Event listeners for filter khoa change
+            filterMaKhoa.addEventListener('change', updateFilterOptions);
+
+            // Event listeners for form khoa change
+            maKhoaFormInput.addEventListener('change', updateFormOptions);
+
+            // Event listener for form lop change
+            maLopInput.addEventListener('change', updateFormByLop);
+
+            // ========== FETCH PHÂN CÔNG ==========
+            async function fetchPhanCongs(filters = {}) {
+                showLoading();
+                try {
+                    let url = API_BASE_URL;
+                    if (filters._q) url += `?_q=${encodeURIComponent(filters._q)}`;
+
+                    const response = await fetch(url);
+
+                    // Kiểm tra status TRƯỚC khi parse JSON
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`HTTP ${response.status}: ${errorText}`);
+                    }
+
+                    let data = await response.json();
+
+                    // Apply filters
+                    if (filters.maKhoa) {
+                        data = data.filter(pc => {
+                            const lop = allLops.find(l => l.maLop === pc.maLop);
+                            return lop && lop.maKhoa === filters.maKhoa;
+                        });
+                    }
+                    if (filters.maGV) {
+                        data = data.filter(pc => pc.maGV === filters.maGV);
+                    }
+                    if (filters.maLop) {
+                        data = data.filter(pc => pc.maLop === filters.maLop);
+                    }
+
+                    phancongData = data;
+
+                    // Destroy existing DataTable
+                    if ($.fn.DataTable.isDataTable('#giangvien-table')) {
+                        dataTable.destroy();
+                    }
+
+                    // Populate table
+                    const tbody = $('#giangvien-table tbody');
+                    tbody.empty();
+
+                    phancongData.forEach(row => {
+                        const tr = $('<tr>');
+                        tr.append(`<td><input type="checkbox" class="select-row" value="${row.id}"></td>`);
+                        tr.append(`<td>${row.id}</td>`);
+                        tr.append(`<td>${row.maLop} - ${row.tenLop || ''}</td>`);
+                        tr.append(`<td>${row.maMH} - ${row.tenMH || ''}</td>`);
+                        tr.append(`<td>${row.maGV} - ${row.hoTen || ''}</td>`);
+                        tr.append(`<td>${row.hocKy || 'Chưa chỉ định'}</td>`);
+
+                        const actionTd = $('<td class="action-buttons">');
+                        actionTd.append(`<button onclick="window.handleViewDetail(${row.id})" class="action-btn view-phancong-btn" title="Xem chi tiết"><i class="fas fa-eye"></i></button>`);
+                        actionTd.append(`<button onclick="window.handleEdit(${row.id})" class="action-btn edit-btn" title="Sửa"><i class="fas fa-edit"></i></button>`);
+                        actionTd.append(`<button onclick="window.handleDelete(${row.id})" class="action-btn delete-btn" title="Xóa"><i class="fas fa-trash"></i></button>`);
+                        tr.append(actionTd);
+                        tbody.append(tr);
+                    });
+
+                    // Re-initialize DataTable
+                    dataTable = $('#giangvien-table').DataTable({
+                        pageLength: 10,
+                        lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Tất cả"]],
+                        language: { url: "https://cdn.datatables.net/plug-ins/1.13.7/i18n/vi.json" },
+                        searching: false,
+                        info: false,
+                        paging: true,
+                        ordering: true,
+                        columnDefs: [{ orderable: false, targets: [0, 6] }]
+                    });
+
+                    currentFilters = filters;
+                    updateBulkActions();
+                    loadDashboardStats();
+
+                } catch (error) {
+                    console.error('Lỗi:', error);
+                    alert('Lỗi: ' + error.message);
+                } finally {
+                    hideLoading();
+                }
+            }
+
+            window.handleViewDetail = async function (id) {
+                let phanCong = phancongData.find(item => item.id == id);
+
+                // Nếu không tìm thấy, thử tải lại dữ liệu từ server
+                if (!phanCong) {
+                    console.warn("Không tìm thấy phân công, đang tải lại dữ liệu...");
+                    await loadPhanCongs();     // 🔹 Hàm bạn đã có sẵn để tải lại dữ liệu
+                    phanCong = phancongData.find(item => item.id == id);
+                    if (!phanCong) {
+                        alert("Phân công đã bị xóa hoặc không tồn tại!");
+                        return;
+                    }
+                }
+
+                // ✅ Lưu lại phân công được chọn
+                selectedPhanCong = phanCong;
+
+                // ✅ Hiển thị thông tin chi tiết lên modal
+                document.getElementById('detail-lophoc').textContent = phanCong.tenLop;
+                document.getElementById('detail-monhoc').textContent = phanCong.tenMH;
+                document.getElementById('detail-giangvien').textContent = phanCong.hoTen;
+                document.getElementById('detail-hocky').textContent = phanCong.hocKy;
+
+                // ✅ Hiển thị modal
+                phancongDetailModal.style.display = "block";
+
+                // ✅ Render lịch giảng dạy
+                renderLichGiangDay(phanCong.lich || []);
+            };
+
+            // đặt ĐÚNG chỗ (ví dụ ngay dưới handleViewDetail)
+            function renderLichGiangDay(lichList) {
+                const tbody = document.getElementById('detail-lich-tbody');
+                tbody.innerHTML = '';
+
+                if (!lichList || lichList.length === 0) {
+                    tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center">Chưa có lịch giảng dạy</td>
+            </tr>`;
+                    return;
+                }
+
+                lichList.forEach(lich => {
+                    // nếu lich.lich_id có thể là string, dùng `'${lich.lich_id}'` trong onclick
+                    const editOnclick = `handleEditLich(${typeof lich.lich_id === 'number' ? lich.lich_id : `'${lich.lich_id}'`})`;
+                    const deleteOnclick = `handleDeleteLich(${typeof lich.lich_id === 'number' ? lich.lich_id : `'${lich.lich_id}'`})`;
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+            <td>Thứ ${lich.thu_tuan}</td>
+            <td>${lich.tiet_bat_dau}</td>
+            <td>${lich.so_tiet}</td>
+            <td>${lich.phong_hoc || '-'}</td>
+            <td>${lich.ghi_chu || '-'}</td>
+            <td>
+                <button class="action-btn edit-btn" onclick="handleEditLich('${lich.lich_id}')">
+                <i class="fas fa-edit"></i>
+                </button>
+                <button class="action-btn delete-btn" onclick="handleDeleteLich('${lich.lich_id}')">
+                <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            // Mở modal sửa lịch (dùng IDs từ phancong.html)
+            function handleEditLich(lichId) {
+                if (!selectedPhanCong) return;
+                const lich = (selectedPhanCong.lich || []).find(l => String(l.lich_id) === String(lichId));
+                if (!lich) {
+                    alert('Không tìm thấy lịch này trong phân công đang mở.');
+                    return;
+                }
+
+                // Gán vào form (IDs đúng như trong phancong.html)
+                document.getElementById('lich-id-phan-cong').value = selectedPhanCong.id;
+                document.getElementById('lich-id-hidden').value = lich.lich_id;
+                document.getElementById('lich-thu-tuan').value = lich.thu_tuan;
+                document.getElementById('lich-tiet').value = lich.tiet_bat_dau;
+                document.getElementById('lich-so-tiet').value = lich.so_tiet;
+                document.getElementById('lich-phong').value = lich.phong_hoc || '';
+                document.getElementById('lich-ghichu').value = lich.ghi_chu || '';
+
+                document.getElementById('lich-modal-title').textContent = 'Cập nhật Lịch Giảng Dạy';
+                document.getElementById('lich-submit-btn').textContent = 'Cập nhật Lịch';
+                document.getElementById('lich-modal').style.display = 'flex';
+            }
+            // ✅ Sửa hàm handleEditLich (xóa hàm trùng lặp cũ)
+            window.handleEditLich = function (lichId) {
+                if (!selectedPhanCong) {
+                    alert('Vui lòng chọn phân công trước!');
+                    return;
+                }
+
+                const lich = selectedPhanCong.lich?.find(l => String(l.lich_id) === String(lichId));
+
+                if (!lich) {
+                    alert("Không tìm thấy lịch!");
+                    return;
+                }
+
+                // Gán vào form để mở popup sửa
+                lichIdPhanCong.value = selectedPhanCong.id;
+                lichIdHidden.value = lich.lich_id;
+                lichThuTuan.value = lich.thu_tuan;
+                lichTiet.value = lich.tiet_bat_dau;
+                lichSoTiet.value = lich.so_tiet;
+                lichPhong.value = lich.phong_hoc || '';
+                lichGhiChu.value = lich.ghi_chu || '';
+
+                document.getElementById('lich-modal-title').textContent = "Cập nhật Lịch Giảng Dạy";
+                lichSubmitBtn.textContent = "Lưu Thay Đổi";
+
+                lichModal.style.display = "flex";
+            };
+
+            // ✅ Sửa hàm handleDeleteLich
+            window.handleDeleteLich = async function (lichId) {
+                if (!selectedPhanCong) {
+                    alert('Vui lòng chọn phân công trước!');
+                    return;
+                }
+
+                if (!confirm("Bạn có chắc muốn xóa lịch này?")) return;
+
+                try {
+                    showLoading();
+                    const id = selectedPhanCong.id;
+                    const response = await fetch(`/api/phancong/${id}/lich/${lichId}`, {
+                        method: "DELETE"
+                    });
+
+                    // ✅ Kiểm tra status trước khi parse JSON
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(errorText || `HTTP ${response.status}: Lỗi server`);
+                    }
+
+                    const data = await response.json();
+                    alert(data.message || "Xóa lịch thành công!");
+
+                    // Tải lại dữ liệu
+                    await fetchPhanCongs(currentFilters);
+
+                    // Cập nhật chi tiết
+                    selectedPhanCong = phancongData.find(pc => pc.id == id);
+                    if (selectedPhanCong) {
+                        handleViewDetail(id);
+                    }
+
+                } catch (error) {
+                    console.error("Lỗi:", error);
+                    alert("Lỗi: " + error.message);
+                } finally {
+                    hideLoading();
+                }
+            };
+
+            // ✅ Xử lý xóa lịch giảng dạy
+            async function handleDeleteLich(lichId) {
+                if (!confirm("Bạn có chắc muốn xóa lịch này không?")) return;
+
+                const response = await fetch(`/api/phancong/${selectedPhanCong.id}/lich/${lichId}`, {
+                    method: "DELETE"
+                });
+
+                if (response.ok) {
+                    await loadPhanCongs(); // cập nhật lại danh sách
+                    selectedPhanCong = phancongData.find(pc => pc.id == selectedPhanCong.id);
+                    handleViewDetail(selectedPhanCong.id);
+                } else {
+                    alert("Xóa lịch thất bại!");
+                }
+            }
+
+            // ✅ Sửa nút thêm lịch
+            addLichBtn.addEventListener('click', () => {
+                if (!selectedPhanCong) {
+                    alert('Vui lòng chọn phân công trước!');
+                    return;
+                }
+
+                lichIdPhanCong.value = selectedPhanCong.id;
+                lichIdHidden.value = ''; // Để trống để biết là thêm mới
+                lichForm.reset();
+
+                document.getElementById('lich-modal-title').textContent = 'Thêm Lịch Giảng Dạy';
+                lichSubmitBtn.textContent = 'Thêm Lịch';
+
+                lichModal.style.display = 'flex';
+            });
+
+            // Thay thế hàm lichForm addEventListener (khoảng dòng 800-850)
+            lichForm.addEventListener("submit", async function (e) {
+                e.preventDefault();
+
+                const id = lichIdPhanCong.value;
+                const lichId = lichIdHidden.value;
+
+                // Validate input
+                if (!id || !lichThuTuan.value || !lichTiet.value || !lichSoTiet.value) {
+                    alert('Vui lòng điền đầy đủ thông tin bắt buộc!');
+                    return;
+                }
+
+                const payload = {
+                    thu_tuan: parseInt(lichThuTuan.value),
+                    tiet_bat_dau: parseInt(lichTiet.value),
+                    so_tiet: parseInt(lichSoTiet.value),
+                    phong_hoc: lichPhong.value || null,
+                    ghi_chu: lichGhiChu.value || null
+                };
+
+                try {
+                    showLoading();
+
+                    // Xác định endpoint: POST để thêm mới, PUT để cập nhật
+                    const method = lichId ? "PUT" : "POST";
+                    const endpoint = lichId
+                        ? `/api/phancong/${id}/lich/${lichId}`
+                        : `/api/phancong/${id}/lich`;
+
+                    const response = await fetch(endpoint, {
+                        method: method,
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    });
+
+                    // ✅ QUAN TRỌNG: Kiểm tra status TRƯỚC khi parse JSON
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(errorText || `HTTP ${response.status}: Lỗi server`);
+                    }
+
+                    const data = await response.json();
+
+                    alert(data.message || (lichId ? "Cập nhật lịch thành công!" : "Thêm lịch thành công!"));
+                    lichModal.style.display = "none";
+                    lichForm.reset();
+
+                    // ✅ Tải lại dữ liệu
+                    await fetchPhanCongs(currentFilters);
+
+                    // ✅ Cập nhật chi tiết phân công nếu vẫn mở modal
+                    if (selectedPhanCong) {
+                        selectedPhanCong = phancongData.find(item => item.id == id);
+                        if (selectedPhanCong) {
+                            handleViewDetail(id);
+                        }
+                    }
+
+                } catch (error) {
+                    console.error('Lỗi:', error);
+                    alert('Lỗi: ' + error.message);
+                } finally {
+                    hideLoading();
+                }
+            });
+
+            // ========== ADD/EDIT PHÂN CÔNG ==========
+            addBtn.addEventListener('click', async () => {
+                await loadAllData();
+                modalTitle.textContent = 'Thêm Phân công mới';
+                submitBtn.textContent = 'Thêm';
+                idHiddenInput.value = '';
+                phancongForm.reset();
+                phancongModal.style.display = 'flex';
+            });
+
+            // FIX 2: Cập nhật phancongForm submit handler (dòng ~520)
+            phancongForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (!phancongForm.checkValidity()) {
+                    phancongForm.reportValidity();
+                    return;
+                }
+
+                const formData = {
+                    maLop: maLopInput.value,
+                    maMH: maMHInput.value,
+                    maGV: maGVInput.value,
+                    hocKy: hocKyInput.value
+                };
+
+                try {
+                    showLoading();
+                    const id = idHiddenInput.value;
+                    const url = id ? `${API_BASE_URL}/${id}` : API_BASE_URL;
+                    const method = id ? 'PUT' : 'POST';
+
+                    const response = await fetch(url, {
+                        method: method,
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(formData)
+                    });
+
+                    // Luôn kiểm tra status trước
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(errorText || 'Thao tác thất bại');
+                    }
+
+                    const result = await response.json();
+                    alert('Thành công!');
+                    phancongModal.style.display = 'none';
+                    phancongForm.reset();
+                    await fetchPhanCongs(currentFilters);
+
+                } catch (error) {
+                    console.error('Lỗi:', error);
+                    alert('Lỗi: ' + error.message);
+                } finally {
+                    hideLoading();
+                }
+            });
+
+            window.handleEdit = async function (id) {
+                await loadAllData();
+                const pc = phancongData.find(p => p.id === id);
+                if (!pc) return;
+
+                idHiddenInput.value = id;
+
+                // Get khoa from lop
+                const lop = allLops.find(l => l.maLop === pc.maLop);
+                if (lop) {
+                    maKhoaFormInput.value = lop.maKhoa;
+                    updateFormOptions();
+                }
+
+                maLopInput.value = pc.maLop;
+                maMHInput.value = pc.maMH;
+                maGVInput.value = pc.maGV;
+                hocKyInput.value = pc.hocKy;
+
+                modalTitle.textContent = 'Cập nhật Phân công';
+                submitBtn.textContent = 'Lưu Thay Đổi';
+                phancongModal.style.display = 'flex';
+            };
+
+            // FIX 3: Cập nhật handleDelete (dòng ~600)
+            window.handleDelete = async function (id) {
+                if (!confirm('Bạn chắc chắn muốn xóa phân công này?')) return;
+
+                try {
+                    showLoading();
+                    const response = await fetch(`${API_BASE_URL}/${id}`, {
+                        method: 'DELETE'
+                    });
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(errorText || 'Xóa thất bại');
+                    }
+
+                    const result = await response.json();
+                    alert('Xóa thành công!');
+                    await fetchPhanCongs(currentFilters);
+
+                } catch (error) {
+                    console.error('Lỗi:', error);
+                    alert('Lỗi: ' + error.message);
+                } finally {
+                    hideLoading();
+                }
+            };
+
+            // ========== BULK ACTIONS ==========
+            $('#select-all').on('change', function () {
+                $('.select-row').prop('checked', this.checked);
+                updateBulkActions();
+            });
+
+            $(document).on('change', '.select-row', function () {
+                const totalCheckboxes = $('.select-row').length;
+                const checkedCheckboxes = $('.select-row:checked').length;
+                $('#select-all').prop('checked', totalCheckboxes > 0 && checkedCheckboxes === totalCheckboxes);
+                updateBulkActions();
+            });
+
+            // FIX 4: Cập nhật bulk delete (dòng ~650)
+            $('#bulk-delete-btn').on('click', async function () {
+                const selected = $('.select-row:checked').map(function () { return $(this).val(); }).get();
+                if (selected.length === 0) return;
+
+                if (!confirm(`Bạn có chắc chắn muốn xóa ${selected.length} phân công đã chọn?`)) return;
+
+                try {
+                    showLoading();
+                    for (let id of selected) {
+                        const response = await fetch(`${API_BASE_URL}/${id}`, { method: 'DELETE' });
+                        if (!response.ok) {
+                            const errorText = await response.text();
+                            throw new Error(errorText || 'Xóa thất bại');
+                        }
+                    }
+                    alert('Xóa thành công!');
+                    await fetchPhanCongs(currentFilters);
+                } catch (error) {
+                    console.error('Lỗi:', error);
+                    alert('Lỗi xóa bulk: ' + error.message);
+                } finally {
+                    hideLoading();
+                }
+            });
+
+            $('#bulk-export-btn').on('click', function () {
+                const selected = $('.select-row:checked').map(function () {
+                    return $(this).val();
+                }).get();
+
+                if (selected.length === 0) return;
+
+                const selectedStr = selected.join(',');
+                window.open(`${API_BASE_URL}/export-selected?selected=${selectedStr}`, '_blank');
+            });
+
+            // ========== SEARCH & FILTER ==========
+            searchBtn.addEventListener('click', () => {
+                const query = searchInput.value.trim();
+                const newFilters = {};
+                if (query) newFilters._q = query;
+                fetchPhanCongs(newFilters);
+            });
+
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') searchBtn.click();
+            });
+
+            applyFilterBtn.addEventListener('click', () => {
+                const newFilters = {};
+                if (filterMaKhoa.value) newFilters.maKhoa = filterMaKhoa.value;
+                if (filterMaGV.value) newFilters.maGV = filterMaGV.value;
+                if (filterMaLop.value) newFilters.maLop = filterMaLop.value;
+                fetchPhanCongs(newFilters);
+            });
+
+            clearFilterBtn.addEventListener('click', () => {
+                filterMaKhoa.value = '';
+                filterMaGV.value = '';
+                filterMaLop.value = '';
+                searchInput.value = '';
+                updateFilterOptions();
+                fetchPhanCongs({});
+            });
+
+            // FIX 5: Cập nhật export button (dòng ~700)
+            exportBtn.addEventListener('click', async () => {
+                showLoading();
+                try {
+                    const response = await fetch(`${API_BASE_URL}/export`);
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(errorText || 'Export thất bại');
+                    }
+
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `phancong_${new Date().toISOString().split('T')[0]}.xlsx`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+
+                } catch (error) {
+                    console.error('Lỗi export:', error);
+                    alert('Lỗi: ' + error.message);
+                } finally {
+                    hideLoading();
+                }
+            });
+
+            // ========== MODAL HANDLERS ==========
+            closeBtn.addEventListener('click', () => {
+                phancongModal.style.display = 'none';
+            });
+
+            closeDetailBtn.addEventListener('click', () => {
+                phancongDetailModal.style.display = 'none';
+            });
+
+            closeLichBtn.addEventListener('click', () => {
+                lichModal.style.display = 'none';
+            });
+
+            phancongModal.addEventListener('click', (e) => {
+                if (e.target === phancongModal) phancongModal.style.display = 'none';
+            });
+
+            phancongDetailModal.addEventListener('click', (e) => {
+                if (e.target === phancongDetailModal) phancongDetailModal.style.display = 'none';
+            });
+
+            lichModal.addEventListener('click', (e) => {
+                if (e.target === lichModal) lichModal.style.display = 'none';
+            });
+
+            // ========== LOGOUT ==========
+            const logoutBtn = document.getElementById('logout-btn');
+            logoutBtn.addEventListener('click', () => {
+                if (confirm('Bạn có chắc chắn muốn thoát khỏi hệ thống?')) {
+                    window.location.href = '../index.html';
+                }
+            });
+
+            importBtn.addEventListener('click', () => {
+                importFileInput.click();
+            });
+
+            // FIX 6: Cập nhật import file handler (dòng ~800)
+            importFileInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file || isUploading) return;
+
+                isUploading = true;
+                importBtn.disabled = true;
+                importBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang upload...';
+
+                const formData = new FormData();
+                formData.append('excelFile', file);
+
+                try {
+                    showLoading();
+                    const response = await fetch(`${API_BASE_URL}/import`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(errorText || 'Import thất bại');
+                    }
+
+                    const result = await response.json();
+                    alert(result.message || 'Import thành công!');
+
+                    e.target.value = '';
+                    await fetchPhanCongs(currentFilters);
+                    await loadDashboardStats();
+                } catch (error) {
+                    console.error('Lỗi import:', error);
+                    alert(`Import thất bại: ${error.message}`);
+                    e.target.value = '';
+                } finally {
+                    isUploading = false;
+                    importBtn.disabled = false;
+                    importBtn.innerHTML = '<i class="fas fa-upload"></i> Import từ File';
+                    hideLoading();
+                }
+            });
+
+            // ========== INITIALIZE ==========
+            loadAllData();
+            fetchPhanCongs({});
+            loadDashboardStats();
+
+        });
+    </script>
+</body>
+
+</html>

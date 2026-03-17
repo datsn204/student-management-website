@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Điểm - Trang Giảng Viên</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/teacher.css">
+</head>
+
+<body>
+    <div class="sidebar">
+        <div class="header">
+            <img src="../pictures/gv.jpg" alt="Avatar">
+            <div class="info">
+                <strong id="user-name">Teacher</strong>
+            </div>
+        </div>
+        <div class="menu">
+            <a href="giangvien.html" class="menu-item"><i class="fa-solid fa-user"></i>Danh sách sinh viên</a>
+            <a href="manage-class.html" class="menu-item"><i class="fa-solid fa-landmark"></i>Quản lý lớp học</a>
+            <a href="manage-grades.html" class="menu-item active"><i class="fa-solid fa-graduation-cap"></i>Quản lý
+                điểm</a>
+            <a href="exam-schedule.html" class="menu-item"><i class="fa-solid fa-bell"></i>Xem lịch thi</a>
+            <a href="personal-info.html" class="menu-item"><i class="fa-solid fa-circle-user"></i>Thông tin cá nhân</a>
+        </div>
+        <div class="bottom">
+            <div class="menu-item logout-btn" id="logout-btn">
+                <i class="fas fa-sign-out-alt"></i><span>Đăng xuất</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="welcome">
+            <h1><i class="fas fa-chart-line"></i> Quản lý Điểm</h1>
+
+            <!-- THÔNG TIN KHOA VÀ TÊN GIẢNG VIÊN -->
+            <div class="info-container" style="margin-bottom: 24px;">
+                <div class="info-group">
+                    <label><i class="fas fa-user-tie"></i> Giảng viên:</label>
+                    <span id="tenGiangVien" style="font-weight: 600; color: var(--primary);">Đang tải...</span>
+                </div>
+                <div class="info-group">
+                    <label><i class="fas fa-building"></i> Khoa:</label>
+                    <span id="facultyDisplay" style="font-weight: 600; color: var(--secondary);">Đang tải...</span>
+                </div>
+            </div>
+
+            <!-- IMPORT/EXPORT BUTTONS -->
+            <div style="display: flex; justify-content: space-between; margin-bottom: 16px; gap: 16px;">
+                <button onclick="document.getElementById('importFileInput').click()" class="action-btn import-btn"
+                    id="import-grades-btn" style="display: none;">
+                    <i class="fas fa-file-import"></i> Import Excel
+                </button>
+                <input type="file" id="importFileInput" accept=".xlsx, .xls" style="color: red; display: none;"
+                    onchange="handleImportFile(event)">
+
+                <button onclick="exportGradesToExcel()" class="action-btn export-btn" id="export-grades-btn"
+                    style="display: none;">
+                    <i class="fas fa-file-excel"></i> Export Excel
+                </button>
+            </div>
+
+            <div class="filters-container">
+                <div class="filter-group">
+                    <label for="classSelect"><i class="fas fa-school"></i> Chọn Lớp:</label>
+                    <select id="classSelect" class="filter-select">
+                        <option value="">Tất cả lớp</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="subjectSelect"><i class="fas fa-book"></i> Chọn Môn:</label>
+                    <div style="display: flex; gap: 8px;">
+                        <select id="subjectSelect" class="filter-select" style="flex: 1;">
+                            <option value="">Tất cả môn học</option>
+                        </select>
+                        <button onclick="clearSubjectFilter()" class="action-btn reset-btn" title="Xóa lọc môn">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grades-container">
+                <div class="table-container">
+                    <table id="gradesTable">
+                        <thead>
+                            <tr>
+                                <th>STT</th>
+                                <th>Mã SV</th>
+                                <th>Họ Tên</th>
+                                <th>Mã Lớp</th>
+                                <th>Mã Môn</th>
+                                <th>Điểm Quá Trình</th>
+                                <th>Điểm Thi</th>
+                                <th>Điểm Tổng Kết</th>
+                                <th>Hành Động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="gradesBody">
+                            <tr>
+                                <td colspan="9" class="no-data">Vui lòng chọn lớp để xem điểm</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- PHÂN TRANG -->
+            <div class="pagination-container" id="pagination-container" style="display: none;">
+                <div class="pagination-controls">
+                    <button onclick="goToPreviousPage()" class="action-btn" id="prev-btn" disabled>
+                        <i class="fas fa-chevron-left"></i> Trước
+                    </button>
+                    <span id="page-info" class="page-info">Trang 1 / 1</span>
+                    <button onclick="goToNextPage()" class="action-btn" id="next-btn" disabled>
+                        <i class="fas fa-chevron-right"></i> Sau
+                    </button>
+                </div>
+            </div>
+
+            <!-- LOADING SPINNER -->
+            <div class="loading-spinner" id="loading-spinner" style="display: none;">
+                <i class="fas fa-spinner fa-spin"></i> Đang tải...
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CHỈNH SỬA ĐIỂM -->
+    <div id="editModal" class="modal1" style="display: none;">
+        <div class="modal-content">
+            <h3 id="modalTitle"><i class="fas fa-edit"></i> Thêm Điểm</h3>
+            <div class="edit-group">
+                <label>Mã SV:</label>
+                <input type="text" id="editMaSV" class="info-input" readonly>
+            </div>
+            <div class="edit-group">
+                <label>Mã Môn:</label>
+                <input type="text" id="editMaMH" class="info-input" readonly>
+            </div>
+            <div class="edit-group">
+                <label>Điểm Quá Trình:</label>
+                <input type="number" id="editDiemQT" class="info-input" min="0" max="10" step="0.1"
+                    placeholder="Nhập điểm 0-10">
+            </div>
+            <div class="edit-group">
+                <label>Điểm Thi:</label>
+                <input type="number" id="editDiemThi" class="info-input" min="0" max="10" step="0.1"
+                    placeholder="Nhập điểm 0-10">
+            </div>
+            <div class="action-container">
+                <button class="action-btn save-btn" onclick="saveGrade()">
+                    <i class="fas fa-save"></i> Lưu
+                </button>
+                <button class="action-btn cancel-btn" onclick="hideEditModal()">
+                    <i class="fas fa-times"></i> Hủy
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        const API_BASE = 'http://localhost:3000/api';
+        const maTK = sessionStorage.getItem('maTK');
+
+        if (!maTK || sessionStorage.getItem('userRole') !== 'GiangVien') {
+            window.location.href = '../index.html';
+        }
+
+        let currentMaKhoa = '';
+        let maGV = '';
+        let currentMaLop = '';
+        let currentMaMH = '';
+        let currentPage = 1;
+        let totalPages = 1;
+        let totalGrades = 0;
+        let currentLimit = 25;
+
+        // LOAD THÔNG TIN GIẢNG VIÊN & KHOA
+        async function loadFaculty() {
+            try {
+                const response = await fetch(`${API_BASE}/giangvien?maTK=${encodeURIComponent(maTK)}`);
+                if (!response.ok) throw new Error('Lỗi tải thông tin GV');
+
+                const result = await response.json();
+                const gvData = result.data || result;
+                const gvInfo = Array.isArray(gvData) ? gvData[0] : gvData;
+
+                if (!gvInfo) throw new Error('Không tìm thấy thông tin GV');
+
+                document.getElementById('user-name').textContent = gvInfo.hoTen || 'Giảng viên';
+                document.getElementById('tenGiangVien').textContent = gvInfo.hoTen || 'N/A';
+
+                const maKhoa = gvInfo.maKhoa || '';
+                const tenKhoa = gvInfo.tenKhoa || 'Không xác định';
+
+                document.getElementById('facultyDisplay').textContent = maKhoa
+                    ? `${maKhoa} - ${tenKhoa}`
+                    : 'Không xác định';
+
+                currentMaKhoa = maKhoa;
+                maGV = gvInfo.maGV || maTK;
+
+                console.log('✅ Loaded GV info:', { maGV, currentMaKhoa, hoTen: gvInfo.hoTen });
+            } catch (error) {
+                console.error('❌ Lỗi load khoa:', error);
+                document.getElementById('facultyDisplay').textContent = 'Khoa: Không xác định';
+                document.getElementById('user-name').textContent = 'Giảng viên';
+                document.getElementById('tenGiangVien').textContent = 'N/A';
+            }
+        }
+
+        // LOAD DANH SÁCH LỚP
+        async function loadClasses() {
+            try {
+                let url = `${API_BASE}/diemgv/lops?maGV=${encodeURIComponent(maTK)}`;
+                if (currentMaKhoa) {
+                    url += `&maKhoa=${encodeURIComponent(currentMaKhoa)}`;
+                }
+
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Lỗi tải lớp');
+
+                const classes = await response.json();
+                const select = document.getElementById('classSelect');
+                select.innerHTML = '<option value="">Tất cả lớp</option>';
+
+                if (classes.length === 0) {
+                    console.warn('Không tìm thấy lớp nào.');
+                    return;
+                }
+
+                const uniqueClasses = [...new Map(classes.map(item => [item.maLop, item])).values()];
+                uniqueClasses.forEach(cls => {
+                    const option = document.createElement('option');
+                    option.value = cls.maLop;
+                    option.textContent = `${cls.maLop} - ${cls.tenLop}`;
+                    select.appendChild(option);
+                });
+
+                console.log('✅ Loaded classes:', uniqueClasses.length);
+            } catch (error) {
+                console.error('❌ Lỗi load lớp:', error);
+                alert('Lỗi tải lớp: ' + error.message);
+            }
+        }
+
+        // KHI CHỌN LỚP
+        document.getElementById('classSelect').addEventListener('change', function () {
+            currentMaLop = this.value;
+            currentMaMH = '';
+            currentPage = 1;
+            document.getElementById('subjectSelect').value = '';
+            document.getElementById('subjectSelect').innerHTML = '<option value="">Tất cả môn học</option>';
+
+            // Hiển thị/ẩn nút export
+            document.getElementById('export-grades-btn').style.display = currentMaLop ? 'inline-flex' : 'none';
+            // Hiển thị/ẩn nút import
+            document.getElementById('import-grades-btn').style.display = currentMaLop ? 'inline-flex' : 'none';
+
+            if (currentMaLop) {
+                loadSubjects();
+                loadGrades();
+            } else {
+                document.getElementById('gradesBody').innerHTML = '<tr><td colspan="9" class="no-data">Vui lòng chọn lớp để xem điểm</td></tr>';
+                updatePaginationVisibility();
+            }
+        });
+
+        // KHI CHỌN MÔN
+        document.getElementById('subjectSelect').addEventListener('change', function () {
+            currentMaMH = this.value;
+            currentPage = 1;
+            loadGrades();
+        });
+
+        // XÓA LỌC MÔN
+        function clearSubjectFilter() {
+            currentMaMH = '';
+            currentPage = 1;
+            document.getElementById('subjectSelect').value = '';
+            if (currentMaLop) {
+                loadGrades();
+            }
+        }
+
+        // LOAD DANH SÁCH MÔN THEO LỚP
+        async function loadSubjects() {
+            if (!currentMaLop) return;
+
+            try {
+                const url = `${API_BASE}/diemgv/mon-hoc-by-lop/${encodeURIComponent(currentMaLop)}?maGV=${encodeURIComponent(maTK)}`;
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Lỗi tải môn học');
+
+                const subjects = await response.json();
+                const select = document.getElementById('subjectSelect');
+                select.innerHTML = '<option value="">Tất cả môn học</option>';
+
+                subjects.forEach(sub => {
+                    const option = document.createElement('option');
+                    option.value = sub.maMH;
+                    option.textContent = `${sub.maMH} - ${sub.tenMH}`;
+                    select.appendChild(option);
+                });
+
+                console.log('✅ Loaded subjects:', subjects.length);
+            } catch (error) {
+                console.error('❌ Lỗi load môn:', error);
+                alert('Lỗi tải môn học: ' + error.message);
+            }
+        }
+
+        function showLoading() {
+            document.getElementById('loading-spinner').style.display = 'block';
+            document.getElementById('gradesBody').innerHTML = '';
+            document.getElementById('pagination-container').style.display = 'none';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading-spinner').style.display = 'none';
+        }
+
+        // LOAD ĐIỂM VỚI PHÂN TRANG
+        async function loadGrades() {
+            if (!currentMaLop) {
+                document.getElementById('gradesBody').innerHTML = '<tr><td colspan="9" class="no-data">Vui lòng chọn lớp để xem điểm</td></tr>';
+                updatePaginationVisibility();
+                return;
+            }
+
+            showLoading();
+
+            try {
+                let url = `${API_BASE}/diemgv?maGV=${encodeURIComponent(maTK)}&page=${currentPage}&limit=${currentLimit}`;
+                if (currentMaKhoa) url += `&maKhoa=${encodeURIComponent(currentMaKhoa)}`;
+                if (currentMaLop) url += `&maLop=${encodeURIComponent(currentMaLop)}`;
+                if (currentMaMH) url += `&maMH=${encodeURIComponent(currentMaMH)}`;
+
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Lỗi tải điểm');
+
+                const result = await response.json();
+                const grades = result.data || [];
+                totalGrades = result.total || 0;
+                totalPages = result.totalPages || 1;
+                currentPage = result.currentPage || 1;
+
+                const tableBody = document.getElementById('gradesBody');
+                tableBody.innerHTML = '';
+
+                if (grades.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="9" class="no-data">Không có dữ liệu điểm</td></tr>';
+                    updatePaginationVisibility();
+                    return;
+                }
+
+                grades.forEach((grade, index) => {
+                    const tr = document.createElement('tr');
+                    const stt = ((currentPage - 1) * currentLimit) + index + 1;
+                    const diemQTDisplay = grade.diemQT !== null && !isNaN(parseFloat(grade.diemQT))
+                        ? parseFloat(grade.diemQT).toFixed(2) : '--';
+                    const diemThiDisplay = grade.diemThi !== null && !isNaN(parseFloat(grade.diemThi))
+                        ? parseFloat(grade.diemThi).toFixed(2) : '--';
+                    const diemTKDisplay = grade.diemTK !== null && !isNaN(parseFloat(grade.diemTK))
+                        ? parseFloat(grade.diemTK).toFixed(2) : '--';
+
+                    let buttons = '';
+                    if (grade.id) {
+                        buttons = `
+                            <button class="action-btn edit-btn" onclick="showEditModal(${grade.id}, '${grade.maSV}', ${grade.diemQT || 'null'}, ${grade.diemThi || 'null'}, '${grade.maMH}')">
+                                <i class="fas fa-edit"></i> Sửa
+                            </button>
+                            <button class="action-btn delete-btn" onclick="deleteGrade(${grade.id})">
+                                <i class="fas fa-trash"></i> Xóa
+                            </button>
+                        `;
+                    } else {
+                        buttons = `
+                            <button class="action-btn save-btn" onclick="showEditModal(null, '${grade.maSV}', null, null, '${grade.maMH}')">
+                                <i class="fas fa-plus"></i> Thêm
+                            </button>
+                        `;
+                    }
+
+                    tr.innerHTML = `
+                        <td><strong>${stt}</strong></td>
+                        <td><strong>${grade.maSV}</strong></td>
+                        <td>${grade.hoTen}</td>
+                        <td>${grade.maLop}</td>
+                        <td>${grade.maMH}</td>
+                        <td>${diemQTDisplay}</td>
+                        <td>${diemThiDisplay}</td>
+                        <td><strong>${diemTKDisplay}</strong></td>
+                        <td>${buttons}</td>
+                    `;
+                    tableBody.appendChild(tr);
+                });
+
+                updatePagination();
+                updatePaginationVisibility();
+                console.log('✅ Loaded grades:', grades.length);
+            } catch (error) {
+                console.error('❌ Lỗi load điểm:', error);
+                document.getElementById('gradesBody').innerHTML = '<tr><td colspan="9" class="no-data">Lỗi tải điểm: ' + error.message + '</td></tr>';
+                updatePaginationVisibility();
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function updatePagination() {
+            document.getElementById('page-info').textContent = `Trang ${currentPage} / ${totalPages}`;
+            document.getElementById('prev-btn').disabled = currentPage <= 1;
+            document.getElementById('next-btn').disabled = currentPage >= totalPages;
+        }
+
+        function updatePaginationVisibility() {
+            const hasData = totalGrades > 0;
+            document.getElementById('pagination-container').style.display = hasData ? 'flex' : 'none';
+        }
+
+        function goToPreviousPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                loadGrades();
+            }
+        }
+
+        function goToNextPage() {
+            if (currentPage < totalPages) {
+                currentPage++;
+                loadGrades();
+            }
+        }
+
+        // HIỂN THỊ MODAL CHỈNH SỬA
+        function showEditModal(id, maSV, diemQT, diemThi, maMH) {
+            const modal = document.getElementById('editModal');
+            modal.style.display = 'flex';
+
+            document.getElementById('editMaSV').value = maSV;
+            document.getElementById('editMaMH').value = maMH;
+            document.getElementById('editDiemQT').value = diemQT !== null && !isNaN(parseFloat(diemQT))
+                ? parseFloat(diemQT) : '';
+            document.getElementById('editDiemThi').value = diemThi !== null && !isNaN(parseFloat(diemThi))
+                ? parseFloat(diemThi) : '';
+
+            document.getElementById('modalTitle').textContent = id ? 'Sửa Điểm' : 'Thêm Điểm';
+            modal.dataset.id = id || '';
+        }
+
+        // ẨN MODAL
+        function hideEditModal() {
+            const modal = document.getElementById('editModal');
+            modal.style.display = 'none';
+            document.getElementById('editDiemQT').value = '';
+            document.getElementById('editDiemThi').value = '';
+            delete modal.dataset.id;
+        }
+
+        // LƯU ĐIỂM
+        async function saveGrade() {
+            const id = document.getElementById('editModal').dataset.id || null;
+            const maSV = document.getElementById('editMaSV').value;
+            const maMH = document.getElementById('editMaMH').value;
+            const diemQT = document.getElementById('editDiemQT').value ? parseFloat(document.getElementById('editDiemQT').value) : null;
+            const diemThi = document.getElementById('editDiemThi').value ? parseFloat(document.getElementById('editDiemThi').value) : null;
+
+            if (!maSV || !maMH || (diemQT === null && diemThi === null)) {
+                alert('Vui lòng nhập ít nhất một điểm (Quá trình hoặc Thi).');
+                return;
+            }
+
+            if ((diemQT !== null && (diemQT < 0 || diemQT > 10)) ||
+                (diemThi !== null && (diemThi < 0 || diemThi > 10))) {
+                alert('Điểm phải từ 0 đến 10.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/diemgv/save`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, maSV, maMH, diemQT, diemThi })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Lỗi lưu điểm');
+                }
+
+                const result = await response.json();
+                alert(result.message || 'Lưu điểm thành công!');
+                hideEditModal();
+                loadGrades();
+            } catch (error) {
+                console.error('❌ Lỗi save:', error);
+                alert('Lỗi lưu điểm: ' + error.message);
+            }
+        }
+
+        // XÓA ĐIỂM
+        async function deleteGrade(id) {
+            if (!confirm('Bạn có chắc muốn xóa điểm này?')) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/diemgv/delete`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ diemID: id })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Lỗi xóa điểm');
+                }
+
+                const result = await response.json();
+                alert(result.message || 'Xóa điểm thành công!');
+                loadGrades();
+            } catch (error) {
+                console.error('❌ Lỗi delete:', error);
+                alert('Lỗi xóa điểm: ' + error.message);
+            }
+        }
+
+        // Thay thế đoạn code từ dòng 542-571 trong manage-grades.html
+
+        async function handleImportFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async function (e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+
+                    if (jsonData.length === 0) {
+                        alert('File Excel không có dữ liệu!');
+                        return;
+                    }
+
+                    // ✅ VALIDATE VÀ CHUẨN BỊ DỮ LIỆU - THÊM maLop
+                    const gradesToImport = [];
+                    for (let row of jsonData) {
+                        const maSV = row['Mã SV'] || row['maSV'];
+                        const maMH = row['Mã MH'] || row['maMH'] || row['Mã Môn'];
+                        const maLop = row['Mã Lớp'] || row['maLop'];  // ✅ THÊM DÒNG NÀY
+                        const diemQT = row['Điểm QT'] || row['diemQT'] || row['Điểm Quá Trình'];
+                        const diemThi = row['Điểm Thi'] || row['diemThi'];
+
+                        // ✅ VALIDATE bao gồm cả maLop
+                        if (!maSV || !maMH || !maLop) {
+                            console.warn('Bỏ qua dòng thiếu maSV, maMH hoặc maLop:', row);
+                            continue;
+                        }
+
+                        gradesToImport.push({
+                            maSV: String(maSV).trim(),
+                            maMH: String(maMH).trim(),
+                            maLop: String(maLop).trim(),  // ✅ THÊM DÒNG NÀY
+                            diemQT: diemQT !== undefined && diemQT !== '' ? parseFloat(diemQT) : null,
+                            diemThi: diemThi !== undefined && diemThi !== '' ? parseFloat(diemThi) : null
+                        });
+                    }
+
+                    if (gradesToImport.length === 0) {
+                        alert('Không có dữ liệu hợp lệ để import!');
+                        return;
+                    }
+
+                    // Gửi dữ liệu lên server
+                    const response = await fetch(`${API_BASE}/diemgv/import`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            grades: gradesToImport,
+                            maGV: maTK
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || 'Lỗi import điểm');
+                    }
+
+                    const result = await response.json();
+                    alert(`Import thành công!\n- Thành công: ${result.success}\n- Thất bại: ${result.failed}\n- Tổng: ${result.total}`);
+
+                    // ✅ Hiển thị chi tiết lỗi nếu có
+                    if (result.errors && result.errors.length > 0) {
+                        console.error('Chi tiết lỗi:', result.errors);
+                        alert('Chi tiết lỗi:\n' + result.errors.slice(0, 5).join('\n'));
+                    }
+
+                    loadGrades();
+                } catch (error) {
+                    console.error('❌ Lỗi import:', error);
+                    alert('Lỗi import file: ' + error.message);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+            event.target.value = ''; // Reset input
+        }
+
+        async function exportGradesToExcel() {
+            if (!currentMaLop) {
+                alert('Vui lòng chọn lớp để export!');
+                return;
+            }
+
+            showLoading();
+            try {
+                let url = `${API_BASE}/diemgv?maGV=${encodeURIComponent(maTK)}&export=true`;
+                if (currentMaKhoa) url += `&maKhoa=${encodeURIComponent(currentMaKhoa)}`;
+                if (currentMaLop) url += `&maLop=${encodeURIComponent(currentMaLop)}`;
+                if (currentMaMH) url += `&maMH=${encodeURIComponent(currentMaMH)}`;
+
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Lỗi tải dữ liệu export');
+
+                const grades = await response.json();
+
+                if (grades.length === 0) {
+                    alert('Không có dữ liệu để export!');
+                    return;
+                }
+
+                const exportData = grades.map((g, index) => ({
+                    'STT': index + 1,
+                    'Mã SV': g.maSV || '',
+                    'Họ Tên': g.hoTen || '',
+                    'Mã Lớp': g.maLop || '',
+                    'Mã Môn': g.maMH || '',
+                    'Tên Môn': g.tenMH || '',
+                    'Điểm QT': g.diemQT !== null ? parseFloat(g.diemQT).toFixed(2) : '',
+                    'Điểm Thi': g.diemThi !== null ? parseFloat(g.diemThi).toFixed(2) : '',
+                    'Điểm TK': g.diemTK !== null ? parseFloat(g.diemTK).toFixed(2) : ''
+                }));
+
+                const ws = XLSX.utils.json_to_sheet(exportData);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Điểm');
+
+                const subjectPart = currentMaMH ? `_${currentMaMH}` : '';
+                const fileName = `Diem_${currentMaLop}${subjectPart}_${new Date().toISOString().split('T')[0]}.xlsx`;
+                XLSX.writeFile(wb, fileName);
+
+                alert('Export thành công!');
+                loadGrades();  // Thêm dòng này để reload bảng dữ liệu sau export
+            } catch (error) {
+                console.error('❌ Lỗi export:', error);
+                alert('Lỗi export: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // ĐĂNG XUẤT
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            if (confirm('Bạn có chắc chắn muốn thoát khỏi hệ thống?')) {
+                sessionStorage.clear();
+                window.location.href = '../index.html';
+            }
+        });
+
+        // KHỞI TẠO
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadFaculty();
+            await loadClasses();
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang Sinh Viên</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/student.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h1>Trang Sinh Viên</h1>
+        </div>
+        <input type="text" class="search-bar" placeholder="Tìm kiếm...">
+        <div class="header-right">
+            <div class="notification" style="cursor: pointer;">
+                <i class="fas fa-bell"></i>
+                <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+            </div>
+            <div class="user-profile" id="userProfile">
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <span class="user-name">Đang tải... <i class="fas fa-chevron-down" id="chevron"></i></span>
+                <div class="dropdown-menu">
+                    <a href="change-password.html" class="dropdown-item" id="changePassword">
+                        <i class="fas fa-key"></i> Đổi mật khẩu
+                    </a>
+                    <a href="../index.html" class="dropdown-item" id="logout">
+                        <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Sidebar -->
+        <nav class="sidebar" id="sidebar">
+            <a href="trangchusv.html" class="nav-item">
+                <i class="fas fa-home nav-icon"></i>
+                <span class="nav-text">Trang chủ</span>
+            </a>
+            <a href="thoikhoabieu.html" class="nav-item">
+                <i class="fas fa-calendar-alt nav-icon"></i>
+                <span class="nav-text">Thời khóa biểu</span>
+            </a>
+            <a href="ketquahoctap.html" class="nav-item">
+                <i class="fas fa-chart-line nav-icon"></i>
+                <span class="nav-text">Kết quả học tập</span>
+            </a>
+            <a href="xemlichthi.html" class="nav-item">
+                <i class="fas fa-newspaper nav-icon"></i>
+                <span class="nav-text">Xem lịch thi</span>
+            </a>
+            <a href="guiphanhoi.html" class="nav-item">
+                <i class="fas fa-file-alt nav-icon"></i>
+                <span class="nav-text">Gửi phản hồi</span>
+            </a>
+            <a href="profile.html" class="nav-item">
+                <i class="fas fa-user-circle nav-icon"></i>
+                <span class="nav-text">Thông tin cá nhân</span>
+            </a>
+            <a href="settings.html" class="nav-item active">
+                <i class="fas fa-cog nav-icon"></i>
+                <span class="nav-text">Khác</span>
+            </a>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Home Page Content -->
+            <section class="page active">
+                <div class="welcome-section1">
+                    <h2 class="welcome-title1">Khác</h2>
+                    <p>Phần này sẽ suy nghĩ thêm.
+                    </p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="../js/scriptsv.js"></script>
+    <script>
+        // ✅ THÊM CODE NÀY SAU DÒNG: const API_BASE_URL = 'http://localhost:3000/api';
+        const API_BASE_URL = 'http://localhost:3000/api';
+        // Load notification count
+        async function loadNotificationCount() {
+            try {
+                const maTK = sessionStorage.getItem('maTK');
+                if (!maTK) return;
+
+                const studentResponse = await fetch(`${API_BASE_URL}/students/by-account?maTK=${maTK}`);
+                if (!studentResponse.ok) return;
+
+                const studentInfo = await studentResponse.json();
+
+                const response = await fetch(`${API_BASE_URL}/feedback/student/${studentInfo.maSV}`);
+                if (!response.ok) return;
+
+                const feedbackList = await response.json();
+                const repliedCount = feedbackList.filter(fb => fb.phanHoiPhu).length;
+
+                const badge = document.getElementById('notificationBadge');
+                if (repliedCount > 0) {
+                    badge.textContent = repliedCount;
+                    badge.style.display = 'flex';
+                }
+            } catch (error) {
+                console.error('Lỗi tải thông báo:', error);
+            }
+        }
+
+        // Click vào chuông chuyển trang
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelector('.notification').addEventListener('click', () => {
+                window.location.href = 'xemphanhoi.html';
+            });
+
+            // Load notification khi trang load
+            loadNotificationCount();
+        });
+    </script>
+</body>
+
+</html>

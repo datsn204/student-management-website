@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập Hệ thống</title>
+    <link rel="stylesheet" href="../css/styleindex.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+</head>
+
+<body>
+    <div class="glass-container">
+        <h2>Login</h2>
+        <form id="login-form">
+            <div class="input-group">
+                <input type="text" id="username" required>
+                <label>Username</label>
+            </div>
+
+            <div class="input-group">
+                <input type="password" id="password" required>
+                <label>Password</label>
+            </div>
+
+            <div class="remember-forgot">
+                <label>
+                    <input type="checkbox">Remember me
+                </label>
+                <a href="#">Forgot Password</a>
+            </div>
+
+            <button type="submit" class="login-btn">Login</button>
+
+            <p id="error-message" style="color: #e63946; text-align: center; margin-top: 15px; font-weight: bold;"></p>
+
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const loginForm = document.getElementById('login-form');
+            const usernameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+            const errorMessage = document.getElementById('error-message');
+
+            if (!loginForm) {
+                console.error("Lỗi CẤU TRÚC: Vui lòng kiểm tra lại ID 'login-form' trong HTML.");
+                return;
+            }
+
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const username = usernameInput.value.trim();
+                const password = passwordInput.value;
+                errorMessage.textContent = '';
+
+                // Hash password SHA256
+                const hashedPassword = CryptoJS.SHA256(password).toString();
+
+                console.log('=== LOGIN DEBUG ===');
+                console.log('Username:', username);
+                console.log('Password (plaintext):', password);
+                console.log('Password (SHA256 hash):', hashedPassword);
+
+                const API_URL = 'http://localhost:3000/api/auth/login';
+
+                try {
+                    console.log('Sending to API...');
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            tenDangNhap: username,
+                            matKhau: hashedPassword  // Gửi HASH SHA256
+                        })
+                    });
+
+                    console.log('Response status:', response.status);
+                    const data = await response.json();
+                    console.log('Response data:', data);
+
+                    if (response.ok) {
+                        const vaiTro = data.vaiTro.toLowerCase();
+
+                        // Lưu thông tin phiên - QUAN TRỌNG
+                        sessionStorage.setItem('userRole', data.vaiTro);  // Giữ nguyên case
+                        sessionStorage.setItem('maTK', data.maTK);
+                        sessionStorage.setItem('vaiTro', data.vaiTro);    // Thêm vaiTro
+
+                        console.log('✓ Login successful!');
+                        console.log('Saved to sessionStorage:');
+                        console.log('- userRole:', data.vaiTro);
+                        console.log('- maTK:', data.maTK);
+
+                        // Chuyển hướng
+                        if (vaiTro === 'admin') {
+                            window.location.href = './admin/admin.html';
+                        } else if (vaiTro === 'sinhvien') {
+                            window.location.href = './student/trangchusv.html';
+                        } else if (vaiTro === 'giangvien') {
+                            window.location.href = './teacher/giangvien.html';
+                        } else {
+                            errorMessage.textContent = 'Vai trò không xác định.';
+                        }
+
+                    } else {
+                        console.log('✗ Login failed');
+                        errorMessage.textContent = data.message || 'Lỗi đăng nhập không xác định.';
+                    }
+
+                } catch (error) {
+                    console.error('Lỗi kết nối hoặc xử lý đăng nhập:', error);
+                    errorMessage.textContent = 'Lỗi: Không thể kết nối đến máy chủ API. Vui lòng kiểm tra console.';
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

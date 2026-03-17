@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kết Quả Học Tập - Sinh Viên</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/student.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h1>Kết Quả Học Tập</h1>
+        </div>
+        <input type="text" class="search-bar" placeholder="Tìm kiếm môn học...">
+        <div class="header-right">
+            <div class="notification" style="cursor: pointer;">
+                <i class="fas fa-bell"></i>
+                <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+            </div>
+            <div class="user-profile" id="userProfile">
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <span class="user-name">Đang tải... <i class="fas fa-chevron-down" id="chevron"></i></span>
+                <div class="dropdown-menu">
+                    <a href="change-password.html" class="dropdown-item">
+                        <i class="fas fa-key"></i> Đổi mật khẩu
+                    </a>
+                    <a href="../index.html" class="dropdown-item" id="logout">
+                        <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Sidebar -->
+        <nav class="sidebar" id="sidebar">
+            <a href="trangchusv.html" class="nav-item">
+                <i class="fas fa-home nav-icon"></i>
+                <span class="nav-text">Trang chủ</span>
+            </a>
+            <a href="thoikhoabieu.html" class="nav-item">
+                <i class="fas fa-calendar-alt nav-icon"></i>
+                <span class="nav-text">Thời khóa biểu</span>
+            </a>
+            <a href="ketquahoctap.html" class="nav-item active">
+                <i class="fas fa-chart-line nav-icon"></i>
+                <span class="nav-text">Kết quả học tập</span>
+            </a>
+            <a href="xemlichthi.html" class="nav-item">
+                <i class="fas fa-newspaper nav-icon"></i>
+                <span class="nav-text">Xem lịch thi</span>
+            </a>
+            <a href="guiphanhoi.html" class="nav-item">
+                <i class="fas fa-file-alt nav-icon"></i>
+                <span class="nav-text">Gửi phản hồi</span>
+            </a>
+            <a href="profile.html" class="nav-item">
+                <i class="fas fa-user-circle nav-icon"></i>
+                <span class="nav-text">Thông tin cá nhân</span>
+            </a>
+            <a href="settings.html" class="nav-item">
+                <i class="fas fa-cog nav-icon"></i>
+                <span class="nav-text">Khác</span>
+            </a>
+        </nav>
+
+        <div class="main-content">
+            <div id="loading" class="loading-container">
+                <i class="fas fa-spinner"></i>
+                <p>Đang tải kết quả học tập...</p>
+            </div>
+
+            <div id="gradeContent" style="display: none;">
+                <!-- Thông tin tổng quan -->
+                <div class="grade-info-card">
+                    <div class="info-box">
+                        <i class="fas fa-user-graduate"></i>
+                        <div class="info-box-content">
+                            <h4>Sinh viên</h4>
+                            <p id="studentName">Loading...</p>
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <i class="fas fa-users"></i>
+                        <div class="info-box-content">
+                            <h4>Lớp</h4>
+                            <p id="className">Loading...</p>
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <i class="fas fa-book-open"></i>
+                        <div class="info-box-content">
+                            <h4>Số môn học</h4>
+                            <p id="subjectCount">0</p>
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <i class="fas fa-star"></i>
+                        <div class="info-box-content">
+                            <h4>Điểm trung bình</h4>
+                            <p id="avgScore" class="grade-good">0.00</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filter -->
+                <div class="filter-section">
+                    <label>
+                        <i class="fas fa-filter"></i> Lọc theo học kỳ:
+                    </label>
+                    <select id="semesterFilter">
+                        <option value="">Tất cả</option>
+                    </select>
+                </div>
+
+                <!-- Thống kê tiến độ -->
+                <div class="chart-section">
+                    <h3><i class="fas fa-chart-bar"></i> Thống Kê Kết Quả</h3>
+                    <div class="progress-bar-container">
+                        <div class="progress-label">
+                            <span>Môn đã hoàn thành</span>
+                            <span id="completedPercent">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="completedProgress" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-label">
+                            <span>Môn đạt điểm khá trở lên (≥ 5.5)</span>
+                            <span id="passPercent">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="passProgress" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bảng điểm -->
+                <div class="grade-table-container">
+                    <table class="grade-table">
+                        <thead>
+                            <tr>
+                                <th>Môn Học</th>
+                                <th>Số Tín Chỉ</th>
+                                <th>Học Kỳ</th>
+                                <th>Điểm QT</th>
+                                <th>Điểm Thi</th>
+                                <th>Điểm TK</th>
+                                <th>Xếp Loại</th>
+                            </tr>
+                        </thead>
+                        <tbody id="gradeTableBody">
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Empty state -->
+                <div id="emptyState" class="empty-state" style="display: none;">
+                    <i class="fas fa-inbox"></i>
+                    <h3>Chưa có kết quả học tập</h3>
+                    <p>Bạn chưa có điểm nào được ghi nhận. Vui lòng liên hệ giảng viên hoặc phòng đào tạo.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/scriptsv.js"></script>
+    <script>
+        const API_BASE_URL = 'http://localhost:3000/api';
+        let allGrades = [];
+        let studentInfo = null;
+
+        // Lấy thông tin sinh viên và điểm
+        async function loadGrades() {
+            try {
+                const maTK = sessionStorage.getItem('maTK');
+                const userRole = sessionStorage.getItem('userRole');
+
+                if (!maTK || userRole?.toLowerCase() !== 'sinhvien') {
+                    alert('Vui lòng đăng nhập với tài khoản sinh viên!');
+                    window.location.href = '../index.html';
+                    return;
+                }
+
+                // Lấy thông tin sinh viên
+                const svResponse = await fetch(`${API_BASE_URL}/students/by-account?maTK=${maTK}`);
+                if (!svResponse.ok) throw new Error('Không thể tải thông tin sinh viên');
+
+                studentInfo = await svResponse.json();
+
+                // Hiển thị thông tin sinh viên
+                document.getElementById('studentName').textContent = studentInfo.hoTen;
+                document.getElementById('className').textContent = studentInfo.tenLop || studentInfo.maLop;
+
+                // Lấy danh sách phân công của lớp
+                const pcResponse = await fetch(`${API_BASE_URL}/phancong`);
+                if (!pcResponse.ok) throw new Error('Không thể tải danh sách môn học');
+
+                const allPhanCong = await pcResponse.json();
+                const lopPhanCong = allPhanCong.filter(pc => pc.maLop === studentInfo.maLop);
+
+                // Lấy điểm của sinh viên
+                const diemResponse = await fetch(`${API_BASE_URL}/diem`);
+                if (!diemResponse.ok) throw new Error('Không thể tải điểm');
+
+                const allDiem = await diemResponse.json();
+                const studentDiem = allDiem.data.filter(d => d.maSV === studentInfo.maSV);
+
+                // Lấy thông tin môn học để có soTinChi
+                const monhocResponse = await fetch(`${API_BASE_URL}/monhocs`);
+                if (!monhocResponse.ok) throw new Error('Không thể tải thông tin môn học');
+
+                const monhocData = await monhocResponse.json();
+                const allMonHoc = Array.isArray(monhocData) ? monhocData : (monhocData.data || []);
+
+                // Kết hợp dữ liệu
+                allGrades = lopPhanCong.map(pc => {
+                    const diem = studentDiem.find(d => d.maMH === pc.maMH);
+                    const monhoc = allMonHoc.find(mh => mh.maMH === pc.maMH);
+
+                    return {
+                        maMH: pc.maMH,
+                        tenMH: pc.tenMH || monhoc?.tenMH || 'Chưa có tên',
+                        soTinChi: monhoc?.soTinChi || 0,
+                        hocKy: pc.hocKy,
+                        diemQT: diem?.diemQT || null,
+                        diemThi: diem?.diemThi || null,
+                        diemTK: diem?.diemTK || null,
+                        xepLoai: getGradeClassification(diem?.diemTK)
+                    };
+                });
+
+                // Cập nhật số liệu thống kê
+                updateStatistics();
+
+                // Populate semester filter
+                populateSemesterFilter();
+
+                // Render bảng
+                renderGradeTable();
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('gradeContent').style.display = 'block';
+
+            } catch (error) {
+                console.error('Lỗi:', error);
+                document.getElementById('loading').innerHTML = `
+                    <i class="fas fa-exclamation-triangle" style="background: linear-gradient(135deg, #ef4444, #dc2626); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
+                    <p style="color: #ef4444;">Không thể tải kết quả học tập. Vui lòng thử lại sau!</p>
+                `;
+            }
+        }
+
+        // Xếp loại điểm
+        function getGradeClassification(score) {
+            if (score === null || score === undefined) return 'Chưa có';
+            if (score >= 8) return 'Xuất sắc';
+            if (score >= 7) return 'Giỏi';
+            if (score >= 5.5) return 'Khá';
+            if (score >= 4) return 'Trung bình';
+            return 'Yếu';
+        }
+
+        // Màu sắc cho điểm
+        function getScoreClass(score) {
+            if (score === null || score === undefined) return 'score-none';
+            if (score >= 8) return 'score-excellent';
+            if (score >= 5.5) return 'score-good';
+            if (score >= 4) return 'score-average';
+            return 'score-poor';
+        }
+
+        // Badge xếp loại
+        function getBadgeClass(classification) {
+            const map = {
+                'Xuất sắc': 'excellent',
+                'Giỏi': 'good',
+                'Khá': 'average',
+                'Trung bình': 'fair',
+                'Yếu': 'poor',
+                'Chưa có': 'none'
+            };
+            return map[classification] || 'none';
+        }
+
+        // Cập nhật thống kê
+        function updateStatistics() {
+            const totalSubjects = allGrades.length;
+            const completedSubjects = allGrades.filter(g => g.diemTK !== null).length;
+            const passedSubjects = allGrades.filter(g => g.diemTK !== null && parseFloat(g.diemTK) >= 5.5).length;
+
+            // Điểm trung bình
+            const validScores = allGrades
+                .filter(g => g.diemTK !== null)
+                .map(g => parseFloat(g.diemTK))
+                .filter(score => !isNaN(score));
+
+            const avgScore = validScores.length > 0
+                ? (validScores.reduce((a, b) => a + b, 0) / validScores.length).toFixed(2)
+                : '0.00';
+
+            document.getElementById('subjectCount').textContent = totalSubjects;
+            document.getElementById('avgScore').textContent = avgScore;
+            document.getElementById('avgScore').className = getScoreClass(parseFloat(avgScore));
+
+            // Progress bars
+            const completedPercent = totalSubjects > 0 ? Math.round((completedSubjects / totalSubjects) * 100) : 0;
+            const passPercent = totalSubjects > 0 ? Math.round((passedSubjects / totalSubjects) * 100) : 0;
+
+            document.getElementById('completedPercent').textContent = `${completedPercent}%`;
+            document.getElementById('completedProgress').style.width = `${completedPercent}%`;
+
+            document.getElementById('passPercent').textContent = `${passPercent}%`;
+            document.getElementById('passProgress').style.width = `${passPercent}%`;
+        }
+
+        // Populate semester filter
+        function populateSemesterFilter() {
+            const semesters = [...new Set(allGrades.map(g => g.hocKy).filter(Boolean))];
+            const selectEl = document.getElementById('semesterFilter');
+
+            semesters.forEach(sem => {
+                const option = document.createElement('option');
+                option.value = sem;
+                option.textContent = sem;
+                selectEl.appendChild(option);
+            });
+
+            selectEl.addEventListener('change', renderGradeTable);
+        }
+
+        // Render bảng điểm
+        function renderGradeTable() {
+            const tbody = document.getElementById('gradeTableBody');
+            const emptyState = document.getElementById('emptyState');
+            const tableContainer = document.querySelector('.grade-table-container');
+
+            const selectedSemester = document.getElementById('semesterFilter').value;
+
+            let filteredGrades = allGrades;
+            if (selectedSemester) {
+                filteredGrades = allGrades.filter(g => g.hocKy === selectedSemester);
+            }
+
+            tbody.innerHTML = '';
+
+            if (filteredGrades.length === 0) {
+                tableContainer.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            tableContainer.style.display = 'block';
+            emptyState.style.display = 'none';
+
+            filteredGrades.forEach(grade => {
+                const tr = document.createElement('tr');
+
+                tr.innerHTML = `
+                    <td>
+                        <strong>${grade.tenMH}</strong>
+                        <small>${grade.maMH}</small>
+                    </td>
+                    <td>${grade.soTinChi || '-'}</td>
+                    <td>${grade.hocKy || 'Chưa xác định'}</td>
+                    <td class="score-cell ${getScoreClass(grade.diemQT)}">
+                        ${grade.diemQT !== null && grade.diemQT !== undefined ? parseFloat(grade.diemQT).toFixed(2) : '-'}
+                    </td>
+                    <td class="score-cell ${getScoreClass(grade.diemThi)}">
+                        ${grade.diemThi !== null && grade.diemThi !== undefined ? parseFloat(grade.diemThi).toFixed(2) : '-'}
+                    </td>
+                    <td class="score-cell ${getScoreClass(grade.diemTK)}">
+                        ${grade.diemTK !== null && grade.diemTK !== undefined ? parseFloat(grade.diemTK).toFixed(2) : '-'}
+                    </td>
+                    <td>
+                        <span class="grade-badge ${getBadgeClass(grade.xepLoai)}">
+                            ${grade.xepLoai}
+                        </span>
+                    </td>
+                `;
+
+                tbody.appendChild(tr);
+            });
+        }
+
+        // ✅ THÊM CODE NÀY SAU DÒNG: const API_BASE_URL = 'http://localhost:3000/api';
+
+        // Load notification count
+        async function loadNotificationCount() {
+            try {
+                const maTK = sessionStorage.getItem('maTK');
+                if (!maTK) return;
+
+                const studentResponse = await fetch(`${API_BASE_URL}/students/by-account?maTK=${maTK}`);
+                if (!studentResponse.ok) return;
+
+                const studentInfo = await studentResponse.json();
+
+                const response = await fetch(`${API_BASE_URL}/feedback/student/${studentInfo.maSV}`);
+                if (!response.ok) return;
+
+                const feedbackList = await response.json();
+                const repliedCount = feedbackList.filter(fb => fb.phanHoiPhu).length;
+
+                const badge = document.getElementById('notificationBadge');
+                if (repliedCount > 0) {
+                    badge.textContent = repliedCount;
+                    badge.style.display = 'flex';
+                }
+            } catch (error) {
+                console.error('Lỗi tải thông báo:', error);
+            }
+        }
+
+        // Click vào chuông chuyển trang
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelector('.notification').addEventListener('click', () => {
+                window.location.href = 'xemphanhoi.html';
+            });
+
+            // Load notification khi trang load
+            loadNotificationCount();
+        });
+
+        // Load khi trang sẵn sàng
+        document.addEventListener('DOMContentLoaded', loadGrades);
+    </script>
+</body>
+
+</html>

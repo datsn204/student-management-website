@@ -1,0 +1,280 @@
+/* style.css - FIXED: Ngăn Text Hiện Khi Hover/Click Icon Trong Sidebar Collapsed (Sử Dụng !important) */
+
+:root {
+    --bg-light: #fff;
+    --bg-dark: #1e1e2f;
+    --text-light: #1e1e2f;
+    --text-dark: #fff;
+    --primary: #e63946; /* Màu đỏ */
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    transition: var(--transition);
+    overflow-x: hidden; /* Ngăn scroll ngang */
+}
+
+body.dark {
+    background: linear-gradient(135deg, #121212 0%, #1e1e2f 100%);
+    color: #fff;
+}
+body.dark .main-content {
+    color: #fff;
+}
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh; /* Sử dụng 100vh để full height */
+    width: 254px;
+    background: var(--bg-light);
+    color: var(--bg-dark);
+    transition: var(--transition);
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    overflow-y: auto; /* Cho phép scroll nếu menu dài */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-right: 1px solid rgba(0, 0, 0, 0.05);
+    z-index: 1000; /* Đảm bảo sidebar luôn trên cùng */
+}
+
+.sidebar.dark {
+    background: var(--bg-dark);
+    color: var(--text-dark);
+    border-right-color: rgba(255, 255, 255, 0.1);
+}
+.sidebar.collapsed {
+    width: 80px;
+}
+
+/* Header */
+.sidebar .header {
+    display: flex;
+    align-items: center;
+    padding: 20px 28px 20px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    flex-shrink: 0; /* Không co lại */
+}
+.sidebar .header img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+.sidebar .header .info {
+    margin-left: 15px;
+    overflow: hidden;
+    white-space: nowrap;
+    opacity: 1;
+    transition: opacity 0.2s ease;
+}
+/* Collapse fix */
+.sidebar.collapsed .header .info {
+    opacity: 0 !important;
+    width: 0 !important;
+}
+
+
+/* Menu - Áp dụng cho cả DIV và A */
+.menu {
+    display: flex;
+    flex-direction: column;
+    gap: 5px; /* Giảm gap để menu gọn hơn */
+    padding: 20px 15px;
+    flex: 1;
+    overflow-y: auto;
+}
+
+/* Áp dụng style chung cho cả div.menu-item và a.menu-item */
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 14px 18px;
+    cursor: pointer;
+    border-radius: 12px;
+    transition: var(--transition);
+    white-space: nowrap;
+    overflow: hidden;
+    color: var(--text-light); /* Màu chữ mặc định */
+    text-decoration: none; /* LOẠI BỎ GẠCH CHÂN */
+    font-weight: 500;
+}
+
+.sidebar.dark .menu-item {
+    color: var(--text-dark);
+}
+
+.menu-item:hover {
+    background: rgba(230, 57, 70, 0.1);
+    color: var(--primary);
+}
+.sidebar.dark .menu-item:hover {
+    background: rgba(230, 57, 70, 0.15);
+}
+
+/* Style Active */
+.menu-item.active {
+    background: linear-gradient(135deg, var(--primary), #d00000);
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(230, 57, 70, 0.3);
+}
+
+.menu-item span {
+    transition: opacity 0.2s ease;
+}
+.sidebar.collapsed .menu-item span {
+    opacity: 0 !important;
+    width: 0 !important;
+    overflow: hidden !important;
+    visibility: hidden !important; /* Thêm để chắc chắn ẩn */
+}
+
+/* FIXED: Ngăn hover hiện text trong collapsed */
+.sidebar.collapsed .menu-item:hover span {
+    opacity: 0 !important;
+    width: 0 !important;
+    overflow: hidden !important;
+    visibility: hidden !important;
+    display: none !important; /* Force ẩn hoàn toàn */
+}
+
+.sidebar.collapsed .menu-item {
+    justify-content: center; /* Căn giữa icon khi collapsed */
+    padding: 14px; /* Giảm padding để gọn */
+}
+
+/* Bottom Bar */
+.bottom {
+    display: flex;
+    padding: 20px 15px;
+    flex-direction: column;
+    gap: 10px;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    flex-shrink: 0; /* Không co lại */
+}
+
+.toggle-theme,
+.toggle-sidebar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    padding: 14px 18px;
+    border-radius: 12px;
+    transition: var(--transition);
+    white-space: nowrap;
+    overflow: hidden;
+    font-weight: 500;
+}
+.toggle-theme:hover,
+.toggle-sidebar:hover {
+    background: rgba(230, 57, 70, 0.1);
+    color: var(--primary);
+}
+.toggle-theme span,
+.toggle-sidebar span {
+    transition: opacity 0.2s ease;
+}
+.sidebar.collapsed .toggle-theme span,
+.sidebar.collapsed .toggle-sidebar span {
+    opacity: 0 !important;
+    width: 0 !important;
+    overflow: hidden !important;
+    visibility: hidden !important;
+}
+.switch {
+    margin-left: auto;
+}
+
+/* FIXED: Ngăn hover hiện text trong collapsed cho bottom */
+.sidebar.collapsed .toggle-theme:hover span,
+.sidebar.collapsed .toggle-sidebar:hover span {
+    opacity: 0 !important;
+    width: 0 !important;
+    overflow: hidden !important;
+    visibility: hidden !important;
+    display: none !important;
+}
+
+.sidebar.collapsed .toggle-theme,
+.sidebar.collapsed .toggle-sidebar {
+    justify-content: center;
+    padding: 14px;
+}
+
+/* Switch Styles */
+input[type="checkbox"] {
+    width: 40px;
+    height: 20px;
+    appearance: none;
+    background: #ccc;
+    border-radius: 20px;
+    position: relative;
+    outline: none;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+input[type="checkbox"]::before {
+    content: '';
+    position: absolute;
+    width:19px;
+    height: 19px;
+    background: #fff;
+    border-radius: 50%;
+    top: 1%;
+    left: 1%;
+    transition: var(--transition);
+}
+input[type="checkbox"]:checked {
+    background: var(--primary);
+}
+input[type="checkbox"]:checked:before {
+    transform: translateX(20px);
+}
+
+.main-content {
+    margin-left: 254px; /* Đồng bộ với width sidebar */
+    padding: 40px;
+    transition: all 0.3s ease;
+    font-size: 16px;
+    line-height: 1.6;
+    min-height: 100vh;
+}
+.sidebar.collapsed ~ .main-content {
+    margin-left: 80px;
+}
+
+/* Đảm bảo sidebar luôn hiển thị trên màn hình nhỏ hơn */
+@media (max-width: 1200px) {
+    .sidebar {
+        width: 254px !important; /* Không collapse tự động */
+    }
+    .main-content {
+        margin-left: 254px !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%); /* Ẩn sidebar trên mobile, cần toggle riêng */
+        width: 254px;
+    }
+    .sidebar.open {
+        transform: translateX(0);
+    }
+    .main-content {
+        margin-left: 0;
+    }
+}
+
+.welcome-message {
+    max-width: 100%;
+    word-wrap: break-word;
+}

@@ -1,0 +1,331 @@
+/* ========== MODAL LỊCH THI - ĐỒNG NHẤT VỚI HỆ THỐNG ========== */
+
+/* Modal Overlay */
+#lichthi-modal {
+    display: none;
+    position: fixed; 
+    z-index: 1000; 
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.5);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Modal Content */
+#lichthi-modal .modal-content {
+    background: var(--bg-light);
+    margin: auto;
+    padding: 35px;
+    border-radius: var(--border-radius-lg);
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+    position: relative;
+    animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: var(--transition);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+body.dark #lichthi-modal .modal-content {
+    background: var(--bg-dark);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+@keyframes slideIn {
+    from { transform: translateY(-50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* Close Button */
+#lichthi-modal .close-btn {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: var(--transition);
+    line-height: 1;
+}
+
+#lichthi-modal .close-btn:hover {
+    color: var(--primary);
+    transform: scale(1.1);
+}
+
+/* Modal Title */
+#modal-title {
+    margin-top: 0;
+    margin-bottom: 25px;
+    color: var(--primary);
+    text-align: center;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+body.dark #modal-title {
+    color: #ff6b6b;
+}
+
+/* Form Groups */
+#lichthi-form .form-group {
+    margin-bottom: 22px;
+}
+
+#lichthi-form .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--text-light);
+    font-size: 14px;
+}
+
+body.dark #lichthi-form .form-group label {
+    color: var(--text-dark);
+}
+
+/* Form Inputs */
+#lichthi-form input[type="text"],
+#lichthi-form input[type="datetime-local"],
+#lichthi-form select,
+#lichthi-form textarea {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid #ddd;
+    border-radius: var(--border-radius-sm);
+    box-sizing: border-box;
+    font-size: 14px;
+    transition: var(--transition);
+    background: var(--bg-light);
+    color: var(--text-light);
+    font-family: inherit;
+}
+
+#lichthi-form textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* Focus States */
+#lichthi-form input:focus,
+#lichthi-form select:focus,
+#lichthi-form textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(230, 57, 70, 0.1);
+    outline: none;
+}
+
+/* Dark Mode Inputs */
+body.dark #lichthi-form input,
+body.dark #lichthi-form select,
+body.dark #lichthi-form textarea {
+    background: #333;
+    border-color: #555;
+    color: var(--text-dark);
+}
+
+/* Disabled Inputs */
+#lichthi-form input:disabled,
+#lichthi-form select:disabled,
+#lichthi-form textarea:disabled {
+    background: #f5f5f5;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+body.dark #lichthi-form input:disabled,
+body.dark #lichthi-form select:disabled,
+body.dark #lichthi-form textarea:disabled {
+    background: #2a2a2a;
+    border-color: #444;
+}
+
+/* Select Dropdown Styling */
+#lichthi-form select {
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 40px;
+}
+
+body.dark #lichthi-form select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23fff' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+}
+
+/* Submit Button */
+#submit-btn {
+    width: 100%;
+    padding: 16px;
+    margin-top: 25px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: var(--shadow-light);
+}
+
+#submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(230, 57, 70, 0.3);
+}
+
+#submit-btn:active {
+    transform: translateY(0);
+}
+
+#submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Placeholder Styling */
+#lichthi-form input::placeholder,
+#lichthi-form textarea::placeholder {
+    color: #999;
+    opacity: 1;
+}
+
+body.dark #lichthi-form input::placeholder,
+body.dark #lichthi-form textarea::placeholder {
+    color: #666;
+}
+
+/* Validation States */
+#lichthi-form input:invalid:not(:placeholder-shown):not(:focus),
+#lichthi-form select:invalid:not(:placeholder-shown):not(:focus) {
+    border-color: var(--danger);
+}
+
+#lichthi-form input:valid:not(:placeholder-shown):not(:focus),
+#lichthi-form select:valid:not(:placeholder-shown):not(:focus) {
+    border-color: var(--success);
+}
+
+/* Required Field Indicator */
+#lichthi-form label span[style*="red"] {
+    color: var(--danger);
+    margin-left: 3px;
+}
+
+/* Helper Text */
+.form-helper-text {
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+    font-style: italic;
+}
+
+body.dark .form-helper-text {
+    color: #999;
+}
+
+/* Loading State for Submit Button */
+#submit-btn.loading {
+    position: relative;
+    color: transparent;
+}
+
+#submit-btn.loading::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    top: 50%;
+    left: 50%;
+    margin-left: -8px;
+    margin-top: -8px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+    #lichthi-modal .modal-content {
+        width: 95%;
+        padding: 25px 20px;
+        max-width: none;
+    }
+
+    #modal-title {
+        font-size: 20px;
+        margin-bottom: 20px;
+    }
+
+    #lichthi-form .form-group {
+        margin-bottom: 18px;
+    }
+
+    #lichthi-form input,
+    #lichthi-form select,
+    #lichthi-form textarea {
+        padding: 12px 14px;
+        font-size: 13px;
+    }
+
+    #submit-btn {
+        padding: 14px;
+        font-size: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    #lichthi-modal .modal-content {
+        padding: 20px 15px;
+    }
+
+    #modal-title {
+        font-size: 18px;
+    }
+
+    #lichthi-form .form-group label {
+        font-size: 13px;
+    }
+}
+
+/* ========== SCROLLBAR STYLING ========== */
+#lichthi-modal .modal-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+#lichthi-modal .modal-content::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+}
+
+#lichthi-modal .modal-content::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 10px;
+}
+
+#lichthi-modal .modal-content::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-dark);
+}
+
+body.dark #lichthi-modal .modal-content::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+}

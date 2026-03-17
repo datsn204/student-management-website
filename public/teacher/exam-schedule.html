@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xem Lịch Thi - Trang Giảng Viên</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/teacher.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="../css/lichthigv.css">
+</head>
+
+<body>
+    <div class="sidebar">
+        <div class="header">
+            <img src="../pictures/gv.jpg" alt="Avatar">
+            <div class="info">
+                <strong id="user-name">Teacher</strong>
+            </div>
+        </div>
+        <div class="menu">
+            <a href="giangvien.html" class="menu-item"><i class="fa-solid fa-user" style="font-size: 25px"></i>Danh sách
+                sinh viên</a>
+            <a href="manage-class.html" class="menu-item"><i class="fa-solid fa-landmark"
+                    style="font-size: 25px"></i>Quản lý lớp học</a>
+            <a href="manage-grades.html" class="menu-item"><i class="fa-solid fa-graduation-cap"
+                    style="font-size: 25px"></i>Quản lý điểm</a>
+            <a href="exam-schedule.html" class="menu-item active"><i class="fa-solid fa-bell"
+                    style="font-size: 25px"></i>Xem lịch thi</a>
+            <a href="personal-info.html" class="menu-item"><i class="fa-solid fa-circle-user"
+                    style="font-size: 30px"></i>Thông tin cá nhân</a>
+        </div>
+        <div class="bottom">
+            <div class="menu-item logout-btn" id="logout-btn">
+                <i class="fas fa-sign-out-alt"></i><span>Đăng xuất</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="welcome">
+            <h1><i class="fas fa-calendar-alt"></i> Lịch Thi</h1>
+            <div class="search-container">
+                <input type="text" id="search-input" class="search-input"
+                    placeholder="Tìm kiếm theo mã LT, môn học, lớp, phòng thi...">
+                <button onclick="searchExamSchedule()" class="action-btn search-btn"><i class="fas fa-search"></i> Tìm
+                    kiếm</button>
+                <button onclick="resetFilters()" class="action-btn reset-btn"><i class="fas fa-sync-alt"></i> Tải
+                    lại</button>
+                <button onclick="exportExams()" class="action-btn export-btn"><i class="fas fa-file-excel"></i> Xuất
+                    Excel</button>
+            </div>
+            <div class="table-container">
+                <table id="exams-table">
+                    <thead>
+                        <tr>
+                            <th>Mã LT</th>
+                            <th>Môn Học</th>
+                            <th>Lớp</th>
+                            <th>Khoa</th>
+                            <th>Ngày Thi</th>
+                            <th>Phòng Thi</th>
+                            <th>Giảng Viên</th>
+                            <th>Trạng Thái</th>
+                            <th>Ghi Chú</th>
+                            <th>Hành Động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="exams-tbody"></tbody>
+                </table>
+            </div>
+            <div class="pagination-container" id="pagination-container" style="display: none;">
+                <button id="prev-btn" onclick="previousPage()" disabled>
+                    <i class="fas fa-chevron-left"></i> Trước
+                </button>
+                <span id="page-info" class="page-info">Trang 1 / 1</span>
+                <button id="next-btn" onclick="nextPage()" disabled>
+                    Sau <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+            <!-- Loading spinner -->
+            <div class="loading-spinner" id="loading-spinner" style="display: none;">
+                <i class="fas fa-spinner fa-spin"></i> Đang tải...
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal chi tiết -->
+    <div id="detail-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeDetailModal()">&times;</button>
+            <h3><i class="fas fa-info-circle"></i> Chi Tiết Lịch Thi</h3>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <script>
+        // Kiểm tra vai trò
+        const userRole = sessionStorage.getItem('userRole');
+        const maTK = sessionStorage.getItem('maTK');
+        if (userRole !== 'GiangVien' || !maTK) {
+            window.location.href = '../index.html';
+        }
+
+        // API base URL
+        const API_BASE = 'http://localhost:3000/api';
+
+        let currentPage = 1;
+        let totalPages = 1;
+        let maKhoa = ''; // Ma khoa của GV
+        let currentQuery = ''; // Query tìm kiếm hiện tại
+
+        // Hiển thị loading
+        function showLoading() {
+            document.getElementById('loading-spinner').style.display = 'flex';
+        }
+
+        // Ẩn loading
+        function hideLoading() {
+            document.getElementById('loading-spinner').style.display = 'none';
+        }
+
+        // ✅ FIX: Load tên user và maKhoa
+        async function loadUserInfo() {
+            try {
+                // Sử dụng endpoint /api/giangvien/info với query param maTK
+                const response = await fetch(`${API_BASE}/giangvien/info?maTK=${encodeURIComponent(maTK)}`);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const userInfo = await response.json();
+
+                console.log('✅ User info loaded:', userInfo);
+
+                if (!userInfo || !userInfo.maKhoa) {
+                    throw new Error('Không tìm thấy thông tin khoa');
+                }
+
+                // Hiển thị tên giảng viên
+                document.getElementById('user-name').textContent = userInfo.hoTen || 'Teacher';
+
+                // Lưu maKhoa để dùng cho filter
+                maKhoa = userInfo.maKhoa;
+
+                console.log('✅ Loaded maKhoa:', maKhoa);
+
+                return userInfo;
+            } catch (error) {
+                console.error('❌ Lỗi load user info:', error);
+                alert('Lỗi tải thông tin người dùng. Vui lòng đăng nhập lại.');
+                // Uncomment dòng dưới nếu muốn redirect về trang login khi lỗi
+                // window.location.href = '../index.html';
+            }
+        }
+
+        // ✅ FIX: Load lịch thi theo maKhoa của GV và query
+        async function loadExamSchedule(query = '') {
+            if (!maKhoa) {
+                console.warn('⚠️ Chưa có maKhoa, đang chờ load user info...');
+                return;
+            }
+
+            showLoading();
+            currentQuery = query;
+
+            try {
+                let url = `${API_BASE}/lichthi?maKhoa=${encodeURIComponent(maKhoa)}&page=${currentPage}&limit=10`;
+                if (query) {
+                    url += `&_q=${encodeURIComponent(query)}`;
+                }
+
+                console.log('📡 Fetching exams from:', url);
+
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                const exams = result.data || [];
+                totalPages = result.totalPages || 1;
+
+                console.log('✅ Loaded exams:', exams.length, 'Total pages:', totalPages);
+
+                const tbody = document.getElementById('exams-tbody');
+                if (exams.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="10" class="no-data">Không có lịch thi nào phù hợp với khoa của bạn.</td></tr>';
+                    updatePaginationVisibility();
+                    return;
+                }
+
+                tbody.innerHTML = exams.map(exam => {
+                    const status = getExamStatus(exam.ngayThi);
+                    return `
+                <tr>
+                    <td>${exam.maLT || ''}</td>
+                    <td>${exam.tenMH || ''}</td>
+                    <td>${exam.maLop || ''} - ${exam.tenLop || ''}</td>
+                    <td>${exam.tenKhoa || ''}</td>
+                    <td>${formatDate(exam.ngayThi)}</td>
+                    <td>${exam.phongThi || ''}</td>
+                    <td>${exam.hoTenGV || 'N/A'}</td>
+                    <td><span class="exam-status ${status.class}"><i class="fas fa-${status.icon}"></i> ${status.text}</span></td>
+                    <td>${exam.ghiChu || ''}</td>
+                    <td><button class="view-btn" onclick="viewExamDetail('${exam.maLT}')"><i class="fas fa-eye"></i> Xem</button></td>
+                </tr>
+            `;
+                }).join('');
+
+                updatePaginationInfo(exams.length, result.total || 0);
+                updatePaginationButtons();
+                updatePaginationVisibility();
+            } catch (error) {
+                console.error('❌ Lỗi load lịch thi:', error);
+                document.getElementById('exams-tbody').innerHTML = '<tr><td colspan="10" class="no-data">Lỗi tải dữ liệu. Vui lòng thử lại.</td></tr>';
+                updatePaginationVisibility();
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Định dạng ngày
+        function formatDate(isoString) {
+            if (!isoString) return '';
+            const date = new Date(isoString);
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+
+        // Xác định trạng thái lịch thi
+        function getExamStatus(ngayThi) {
+            if (!ngayThi) return { class: 'passed', icon: 'check-circle', text: 'Đã qua' };
+            const examDate = new Date(ngayThi);
+            const now = new Date();
+            const diffTime = examDate - now;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays < 0) {
+                return { class: 'passed', icon: 'check-circle', text: 'Đã qua' };
+            } else if (diffDays <= 1) {
+                return { class: 'soon', icon: 'exclamation-triangle', text: 'Sắp thi' };
+            } else if (diffDays <= 7) {
+                return { class: 'upcoming', icon: 'clock', text: 'Sắp tới' };
+            } else {
+                return { class: 'upcoming', icon: 'calendar', text: 'Tương lai' };
+            }
+        }
+
+        // Xem chi tiết lịch thi
+        async function viewExamDetail(maLT) {
+            try {
+                let url = `${API_BASE}/lichthi/${maLT}/details`;
+
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+                const detail = await response.json();
+                const status = getExamStatus(detail.ngayThi);
+
+                document.getElementById('modal-body').innerHTML = `
+            <div class="detail-item">
+                <label>Mã LT:</label>
+                <div class="value"><strong>${detail.maLT || ''}</strong></div>
+            </div>
+            <div class="detail-item">
+                <label>Môn Học:</label>
+                <div class="value"><strong>${detail.tenMH || ''}</strong> (${detail.soTinChi || ''} TC)</div>
+            </div>
+            <div class="detail-item">
+                <label>Lớp:</label>
+                <div class="value"><strong>${detail.maLop || ''} - ${detail.tenLop || ''}</strong></div>
+            </div>
+            <div class="detail-item">
+                <label>Khoa:</label>
+                <div class="value"><strong>${detail.tenKhoa || ''}</strong></div>
+            </div>
+            <div class="detail-item">
+                <label>Ngày Thi:</label>
+                <div class="value"><strong>${formatDate(detail.ngayThi)}</strong></div>
+            </div>
+            <div class="detail-item">
+                <label>Phòng Thi:</label>
+                <div class="value"><strong>${detail.phongThi || ''}</strong></div>
+            </div>
+            <div class="detail-item">
+                <label>Trạng Thái:</label>
+                <div class="value">
+                    <span class="exam-status ${status.class}">
+                        <i class="fas fa-${status.icon}"></i>
+                        ${status.text}
+                    </span>
+                </div>
+            </div>
+            <div class="detail-item">
+                <label>Ghi Chú:</label>
+                <div class="value">${detail.ghiChu || 'Không có ghi chú'}</div>
+            </div>
+        `;
+
+                document.getElementById('detail-modal').classList.add('show');
+            } catch (error) {
+                console.error('❌ Lỗi load chi tiết:', error);
+                alert('Không thể tải thông tin chi tiết. Vui lòng thử lại.');
+            }
+        }
+
+        // Đóng modal chi tiết
+        function closeDetailModal() {
+            document.getElementById('detail-modal').classList.remove('show');
+        }
+
+        // Đóng modal khi click outside
+        document.getElementById('detail-modal').addEventListener('click', function (e) {
+            if (e.target === this) {
+                closeDetailModal();
+            }
+        });
+
+        // Tìm kiếm lịch thi
+        function searchExamSchedule() {
+            const query = document.getElementById('search-input').value.trim();
+            currentPage = 1;
+            loadExamSchedule(query);
+        }
+
+        // Reset bộ lọc
+        function resetFilters() {
+            document.getElementById('search-input').value = '';
+            currentQuery = '';
+            currentPage = 1;
+            loadExamSchedule();
+        }
+
+        // ✅ Xuất Excel - Chỉ xuất lịch thi của KHOA hiện tại
+        async function exportExams() {
+            if (!maKhoa) {
+                alert('Không có dữ liệu để xuất.');
+                return;
+            }
+
+            showLoading();
+
+            try {
+                // ✅ QUAN TRỌNG: Lấy ALL dữ liệu với filter maKhoa
+                let url = `${API_BASE}/lichthi?maKhoa=${encodeURIComponent(maKhoa)}&page=1&limit=10000`;
+                if (currentQuery) {
+                    url += `&_q=${encodeURIComponent(currentQuery)}`;
+                }
+
+                console.log('📡 Fetching data for export:', url);
+
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error('Lỗi tải dữ liệu export');
+                }
+
+                const result = await response.json();
+                const exams = result.data || [];
+
+                if (exams.length === 0) {
+                    alert('Không có dữ liệu để xuất!');
+                    hideLoading();
+                    return;
+                }
+
+                console.log('✅ Exporting', exams.length, 'lịch thi của khoa:', maKhoa);
+
+                // Kiểm tra thư viện XLSX
+                if (typeof XLSX === 'undefined') {
+                    console.error('❌ XLSX library not loaded!');
+                    alert('Lỗi: Thư viện XLSX chưa được tải. Vui lòng thử lại.');
+                    hideLoading();
+                    return;
+                }
+
+                // Tạo dữ liệu Excel
+                const wsData = exams.map((exam, index) => ({
+                    'STT': index + 1,
+                    'Mã LT': exam.maLT || '',
+                    'Mã Khoa': exam.maKhoa || maKhoa,
+                    'Tên Khoa': exam.tenKhoa || '',
+                    'Mã Lớp': exam.maLop || '',
+                    'Tên Lớp': exam.tenLop || '',
+                    'Mã MH': exam.maMH || '',
+                    'Tên Môn Học': exam.tenMH || '',
+                    'Ngày Thi': formatDate(exam.ngayThi),
+                    'Phòng Thi': exam.phongThi || '',
+                    'Ghi Chú': exam.ghiChu || ''
+                }));
+
+                // Tạo worksheet và workbook
+                const ws = XLSX.utils.json_to_sheet(wsData);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Lịch Thi');
+
+                // Tạo tên file với timestamp và mã khoa
+                const fileName = `Lich_Thi_Khoa_${maKhoa}_${new Date().toISOString().split('T')[0]}.xlsx`;
+
+                // Download file
+                XLSX.writeFile(wb, fileName);
+
+                alert(`✅ Đã xuất ${exams.length} lịch thi của khoa ${maKhoa} thành công!`);
+
+            } catch (error) {
+                console.error('❌ Lỗi export:', error);
+                alert('Không thể xuất file Excel. Vui lòng thử lại.\n' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Cập nhật thông tin phân trang
+        function updatePaginationInfo(showing, total) {
+            document.getElementById('page-info').textContent = `Trang ${currentPage} / ${totalPages}`;
+        }
+
+        // Cập nhật nút phân trang
+        function updatePaginationButtons() {
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+
+            prevBtn.disabled = currentPage === 1;
+            nextBtn.disabled = currentPage >= totalPages;
+        }
+
+        // Cập nhật hiển thị phân trang
+        function updatePaginationVisibility() {
+            document.getElementById('pagination-container').style.display = totalPages > 0 ? 'flex' : 'none';
+        }
+
+        // Trang trước
+        function previousPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                loadExamSchedule(currentQuery);
+            }
+        }
+
+        // Trang sau
+        function nextPage() {
+            if (currentPage < totalPages) {
+                currentPage++;
+                loadExamSchedule(currentQuery);
+            }
+        }
+
+        // Event listeners cho phân trang
+        document.getElementById('prev-btn').addEventListener('click', previousPage);
+        document.getElementById('next-btn').addEventListener('click', nextPage);
+
+        // Enter để tìm kiếm
+        document.getElementById('search-input').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                searchExamSchedule();
+            }
+        });
+
+        // Đăng xuất
+        const logoutBtn = document.getElementById('logout-btn');
+        logoutBtn.addEventListener('click', () => {
+            if (confirm('Bạn có chắc chắn muốn thoát khỏi hệ thống?')) {
+                sessionStorage.clear();
+                window.location.href = '../index.html';
+            }
+        });
+
+        // ✅ FIX: Load dữ liệu khi trang load (đúng thứ tự)
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                console.log('🚀 Initializing exam schedule page...');
+
+                // Bước 1: Load thông tin user và khoa TRƯỚC
+                await loadUserInfo();
+
+                // Bước 2: Sau khi có maKhoa, mới load lịch thi
+                if (maKhoa) {
+                    await loadExamSchedule();
+                } else {
+                    console.error('❌ Không lấy được maKhoa');
+                    alert('Không thể tải thông tin khoa. Vui lòng đăng nhập lại.');
+                }
+            } catch (error) {
+                console.error('❌ Lỗi khởi tạo:', error);
+                alert('Lỗi khởi tạo trang. Vui lòng thử lại.');
+            }
+        });
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                console.log('🚀 Initializing exam schedule page...');
+
+                // Kiểm tra XLSX library
+                if (typeof XLSX === 'undefined') {
+                    console.warn('⚠️ XLSX library not loaded!');
+                } else {
+                    console.log('✅ XLSX library loaded');
+                }
+
+                // Bước 1: Load thông tin user và khoa TRƯỚC
+                await loadUserInfo();
+
+                // Bước 2: Sau khi có maKhoa, mới load lịch thi
+                if (maKhoa) {
+                    await loadExamSchedule();
+                } else {
+                    console.error('❌ Không lấy được maKhoa');
+                    alert('Không thể tải thông tin khoa. Vui lòng đăng nhập lại.');
+                }
+            } catch (error) {
+                console.error('❌ Lỗi khởi tạo:', error);
+                alert('Lỗi khởi tạo trang. Vui lòng thử lại.');
+            }
+        });
+    </script>
+</body>
+
+</html>

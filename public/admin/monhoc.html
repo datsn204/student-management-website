@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Môn học - Hệ thống</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css"> 
+    <link rel="stylesheet" href="../css/giangvien.css">
+    <link rel="stylesheet" href="../css/monhoc.css">
+    <script>localStorage.theme === 'dark' && document.documentElement.setAttribute('data-theme', 'dark');</script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<div class="sidebar" id="sidebar">
+    <div>
+        <div class="header">
+            <img src="../pictures/admin.jpg" alt="">
+            <div class="info">
+                <strong>Admin</strong><br>
+            </div>
+        </div>
+        <div class="menu">
+            <a href="../admin/admin.html" class="menu-item"><i class="fa-solid fa-user"></i><span>Quản lý tài khoản</span></a>
+            <a href="../admin/student.html" class="menu-item"><i class="fas fa-chart-bar"></i><span>Quản lý sinh viên</span></a>
+            <a href="../admin/giangvienadmin.html" class="menu-item"><i class="fa-solid fa-graduation-cap"></i><span>Quản lý giảng viên</span></a>
+            <a href="../admin/khoa.html" class="menu-item"><i class="fa-solid fa-building"></i><span>Quản lý khoa</span></a>
+            <a href="../admin/lophoc.html" class="menu-item"><i class="fas fa-heart"></i><span>Quản lý lớp học</span></a>
+            <a href="../admin/monhoc.html" class="menu-item active"><i class="fas fa-wallet"></i><span>Quản lý môn học</span></a>
+            <a href="../admin/diem.html" class="menu-item"><i class="fa-solid fa-paintbrush"></i><span>Quản lý điểm</span></a>
+            <a href="../admin/phancong.html" class="menu-item"><i class="fas fa-tasks"></i><span>Phân công giảng dạy</span></a>
+            <a href="../admin/lichthi.html" class="menu-item"><i class="fa-solid fa-bell"></i><span>Quản lý lịch thi</span></a>
+            <a href="../admin/phanhoi.html" class="menu-item"><i class="fa-solid fa-comments"></i><span>Quản lý phản 
+                        hồi</span></a>
+        </div>
+    </div>
+    <div class="bottom">
+        <div class="menu-item" id="logout-btn"><i class="fas fa-sign-out-alt"></i><span>Thoát</span></div>
+        <div class="toggle-theme">
+            <i class="fas fa-moon"></i><span>Chế độ</span>
+            <label class="switch">
+                <input type="checkbox" id="theme-toggle">
+            </label>
+        </div>
+        <div class="toggle-sidebar">
+            <i class="fas fa-angle-double-left" id="collapse-icon"></i><span></span>
+        </div>
+    </div>
+</div>
+
+<div class="main-content">
+    <div class="text-center"> 
+        <h1>Quản lý Môn học 📚</h1>
+    </div>
+
+    <!-- Dashboard Thống kê -->
+    <div class="dashboard-section">
+        <div class="stats-cards">
+            <div class="stat-card stat-card-purple">
+                <div class="stat-card-content">
+                    <div class="stat-info">
+                        <p class="stat-label">Tổng số môn học</p>
+                        <h2 id="total-monhoc" class="stat-value">0</h2>
+                    </div>
+                    <i class="fas fa-book stat-icon"></i>
+                </div>
+            </div>
+
+            <div class="stat-card stat-card-pink">
+                <div class="stat-card-content">
+                    <div class="stat-info">
+                        <p class="stat-label">Tổng số tín chỉ</p>
+                        <h2 id="total-tinchi" class="stat-value">0</h2>
+                    </div>
+                    <i class="fas fa-calculator stat-icon"></i>
+                </div>
+            </div>
+
+            <div class="stat-card stat-card-blue">
+                <div class="stat-card-content">
+                    <div class="stat-info">
+                        <p class="stat-label">SV đăng ký nhiều nhất</p>
+                        <h2 id="most-popular" class="stat-value stat-value-small">-</h2>
+                    </div>
+                    <i class="fas fa-star stat-icon"></i>
+                </div>
+            </div>
+
+            <div class="stat-card stat-card-orange">
+                <div class="stat-card-content">
+                    <div class="stat-info">
+                        <p class="stat-label">Số khoa có môn học</p>
+                        <h2 id="total-khoa" class="stat-value">0</h2>
+                    </div>
+                    <i class="fas fa-university stat-icon"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Biểu đồ -->
+        <div class="charts-container">
+            <div class="chart-card">
+                <h3><i class="fas fa-chart-bar"></i> Phân bố môn học theo khoa</h3>
+                <canvas id="chart-khoa"></canvas>
+            </div>
+
+            <div class="chart-card">
+                <h3><i class="fas fa-chart-pie"></i> Phân bố theo số tín chỉ</h3>
+                <canvas id="chart-tinchi"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="control-bar">
+        <button id="add-monhoc-btn" class="primary-btn"><i class="fas fa-book-medical"></i> Thêm Môn học</button>
+        <button id="import-btn" class="primary-btn">
+            <i class="fas fa-upload"></i> Import từ File</button>
+        <input type="file" id="import-file" accept=".xlsx,.csv" style="display: none;">
+
+        <div class="search-bar">
+            <input type="text" id="search-input" placeholder="Tìm kiếm theo Mã MH, Tên MH...">
+            <button id="search-btn"><i class="fas fa-search"></i></button>
+        </div>
+
+        <button id="export-btn" class="secondary-btn">
+            <i class="fas fa-download"></i> Export ra Excel</button>
+        
+        <div class="filter-section">
+            <select id="filter-maKhoa" class="filter-select">
+                <option value="">Tất cả Khoa</option>
+            </select>
+            <select id="filter-soTinChi" class="filter-select">
+                <option value="">Tất cả Tín chỉ</option>
+                <option value="1">1 Tín chỉ</option>
+                <option value="2">2 Tín chỉ</option>
+                <option value="3">3 Tín chỉ</option>
+                <option value="4">4 Tín chỉ</option>
+                <option value="5">5 Tín chỉ</option>
+            </select>
+            <button id="apply-filter" class="primary-btn"><i class="fas fa-filter"></i> Áp dụng</button>
+            <button id="clear-filter" class="secondary-btn"><i class="fas fa-times"></i> Xóa lọc</button>
+        </div>
+    </div>
+
+    <!-- Bulk Actions Section -->
+    <div class="bulk-actions">
+        <div id="selected-count">Không có mục nào được chọn</div>
+        <div>
+            <button id="bulk-delete-btn" class="bulk-btn bulk-delete" disabled><i class="fas fa-trash"></i> Xóa đã chọn</button>
+            <button id="bulk-export-btn" class="bulk-btn bulk-export" disabled><i class="fas fa-download"></i> Xuất đã chọn</button>
+        </div>
+    </div>
+        
+    <div class="table-card">
+        <h2 class="text-center">Danh sách Môn học</h2> 
+        <table id="monhoc-table" class="display">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="select-all"></th>
+                    <th>Mã Môn học</th>
+                    <th>Tên Môn học</th>
+                    <th>Số tín chỉ</th>
+                    <th>Khoa</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+
+    <div id="loading-spinner" class="spinner">
+        <i class="fas fa-spinner fa-spin"></i>
+        <p>Đang tải...</p>
+    </div>
+</div>
+
+<!-- Modal Thêm/Sửa Môn học -->
+<div id="monhoc-modal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <h2 id="modal-title">Thêm Môn học</h2>
+        <form id="monhoc-form">
+            <input type="hidden" id="monhoc-maMH-hidden"> 
+            
+            <div class="form-group">
+                <label for="maMH"><i class="fas fa-hashtag"></i> Mã Môn học:</label>
+                <input type="text" id="maMH" required>
+            </div>
+            <div class="form-group">
+                <label for="tenMH"><i class="fas fa-book"></i> Tên Môn học:</label>
+                <input type="text" id="tenMH" required>
+            </div>
+            <div class="form-group">
+                <label for="soTinChi"><i class="fas fa-calculator"></i> Số tín chỉ:</label>
+                <input type="number" id="soTinChi" required min="1" max="5"> 
+            </div>
+            <div class="form-group">
+                <label for="maKhoa"><i class="fas fa-university"></i> Mã Khoa:</label>
+                <select id="maKhoa" required>
+                    <option value="">-- Chọn Khoa --</option>
+                </select>
+            </div>
+            
+            <button type="submit" id="submit-btn">Thêm</button> 
+        </form>
+    </div>
+</div>
+
+<!-- Modal Xem Chi tiết Môn học -->
+<div id="detail-modal" class="modal">
+    <div class="modal-content phancong-modal-content">
+        <span class="close-btn-detail">&times;</span>
+        <h2 id="detail-title">Chi tiết Môn học</h2>
+        
+        <div id="detail-content">
+            <!-- Thông tin cơ bản -->
+            <div class="detail-section">
+                <h3 class="section-title"><i class="fas fa-info-circle"></i> Thông tin cơ bản</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <strong>Mã môn học:</strong> <span id="detail-maMH">-</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Tên môn học:</strong> <span id="detail-tenMH">-</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Số tín chỉ:</strong> <span id="detail-soTinChi">-</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Khoa:</strong> <span id="detail-khoa">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Thống kê -->
+            <div class="detail-section">
+                <h3 class="section-title"><i class="fas fa-chart-line"></i> Thống kê</h3>
+                <div class="stats-grid">
+                    <div class="mini-stat-card mini-stat-blue">
+                        <div class="mini-stat-value" id="detail-studentCount">0</div>
+                        <div class="mini-stat-label">Sinh viên đã học</div>
+                    </div>
+                    <div class="mini-stat-card mini-stat-orange">
+                        <div class="mini-stat-value" id="detail-classCount">0</div>
+                        <div class="mini-stat-label">Lớp giảng dạy</div>
+                    </div>
+                    <div class="mini-stat-card mini-stat-green">
+                        <div class="mini-stat-value" id="detail-avgScore">-</div>
+                        <div class="mini-stat-label">Điểm trung bình</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lịch thi -->
+            <div class="detail-section">
+                <h3 class="section-title"><i class="fas fa-calendar-alt"></i> Lịch thi</h3>
+                <div id="detail-examSchedule" class="exam-container">
+                    <p class="no-data">Chưa có lịch thi</p>
+                </div>
+            </div>
+
+            <!-- Danh sách lớp -->
+            <div class="detail-section">
+                <h3 class="section-title"><i class="fas fa-chalkboard-teacher"></i> Danh sách lớp giảng dạy</h3>
+                <div class="table-responsive">
+                    <table id="detail-classes-table">
+                        <thead>
+                            <tr>
+                                <th>Mã lớp</th>
+                                <th>Tên lớp</th>
+                                <th>Giảng viên</th>
+                                <th>Học kỳ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detail-classes-tbody">
+                            <tr>
+                                <td colspan="4" class="no-data">Chưa có lớp nào</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../js/script.js"></script> 
+<script>
+    $(document).ready(function() {
+        const API_URL = '/api/monhocs'; 
+        let dataTable;
+        let monhocsData = [];
+        let isUploading = false;
+        let currentFilters = {};
+        
+        // Chart instances
+        let chartKhoa = null;
+        let chartTinChi = null;
+
+        const monhocModal = document.getElementById('monhoc-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const monhocForm = document.getElementById('monhoc-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const addBtn = document.getElementById('add-monhoc-btn');
+        const closeBtn = document.querySelector('.close-btn');
+        const maMHHiddenInput = document.getElementById('monhoc-maMH-hidden');
+        const maMHInput = document.getElementById('maMH');
+        const tenMHInput = document.getElementById('tenMH');
+        const soTinChiInput = document.getElementById('soTinChi');
+        const maKhoaInput = document.getElementById('maKhoa');
+        const searchInput = document.getElementById('search-input');
+        const searchBtn = document.getElementById('search-btn');
+        const filterMaKhoa = document.getElementById('filter-maKhoa');
+        const filterSoTinChi = document.getElementById('filter-soTinChi');
+        const applyFilterBtn = document.getElementById('apply-filter');
+        const clearFilterBtn = document.getElementById('clear-filter');
+        const importBtn = document.getElementById('import-btn');
+        const importFileInput = document.getElementById('import-file');
+        const exportBtn = document.getElementById('export-btn');
+        const detailModal = document.getElementById('detail-modal');
+        const closeDetailBtn = document.querySelector('.close-btn-detail');
+
+        function showLoading() {
+            document.getElementById('loading-spinner').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading-spinner').style.display = 'none';
+        }
+
+        function updateBulkActions() {
+            const selectedCheckboxes = $('.select-row:checked');
+            const count = selectedCheckboxes.length;
+            const totalRows = $('.select-row').length;
+
+            $('#selected-count').text(count === 0 ? 'Không có mục nào được chọn' : `${count} mục được chọn ${totalRows > 0 ? `(trong ${totalRows})` : ''}`);
+
+            const bulkDiv = $('.bulk-actions');
+            const bulkButtons = $('#bulk-delete-btn, #bulk-export-btn');
+
+            if (count > 0) {
+                bulkDiv.css('display', 'flex');
+                bulkButtons.prop('disabled', false);
+            } else {
+                bulkDiv.css('display', 'none');
+                bulkButtons.prop('disabled', true);
+            }
+        }
+
+        async function loadDashboardStats() {
+            try {
+                const response = await fetch('/api/monhocs/stats');
+                const stats = await response.json();
+                
+                document.getElementById('total-monhoc').textContent = stats.totalMonHoc || 0;
+                document.getElementById('total-tinchi').textContent = stats.totalTinChi || 0;
+                document.getElementById('most-popular').textContent = stats.mostPopular?.tenMH || 'N/A';
+                document.getElementById('total-khoa').textContent = stats.totalKhoa || 0;
+                
+                renderKhoaChart(stats.byKhoa);
+                renderTinChiChart(stats.byTinChi);
+            } catch (error) {
+                console.error('Lỗi tải thống kê:', error);
+            }
+        }
+
+        function renderKhoaChart(data) {
+            const ctx = document.getElementById('chart-khoa').getContext('2d');
+            
+            // Destroy existing chart if it exists
+            if (chartKhoa) {
+                chartKhoa.destroy();
+            }
+            
+            chartKhoa = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map(item => item.tenKhoa),
+                    datasets: [{
+                        label: 'Số môn học',
+                        data: data.map(item => item.soLuong),
+                        backgroundColor: [
+                            'rgba(102, 126, 234, 0.8)',
+                            'rgba(240, 147, 251, 0.8)',
+                            'rgba(79, 172, 254, 0.8)',
+                            'rgba(250, 112, 154, 0.8)',
+                            'rgba(254, 225, 64, 0.8)'
+                        ],
+                        borderWidth: 0,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        function renderTinChiChart(data) {
+            const ctx = document.getElementById('chart-tinchi').getContext('2d');
+            
+            // Destroy existing chart if it exists
+            if (chartTinChi) {
+                chartTinChi.destroy();
+            }
+            
+            chartTinChi = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: data.map(item => `${item.soTinChi} tín chỉ`),
+                    datasets: [{
+                        data: data.map(item => item.soLuong),
+                        backgroundColor: [
+                            'rgba(102, 126, 234, 0.8)',
+                            'rgba(240, 147, 251, 0.8)',
+                            'rgba(79, 172, 254, 0.8)',
+                            'rgba(250, 112, 154, 0.8)',
+                            'rgba(254, 225, 64, 0.8)'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        }
+
+        async function loadKhoaForFilter() {
+            try {
+                const response = await fetch('/api/khoas');
+                if (!response.ok) throw new Error('Lỗi tải khoa');
+                const khoaData = await response.json();
+                filterMaKhoa.innerHTML = '<option value="">Tất cả Khoa</option>';
+                khoaData.forEach(khoa => {
+                    const option = document.createElement('option');
+                    option.value = khoa.maKhoa;
+                    option.textContent = `${khoa.maKhoa} - ${khoa.tenKhoa}`;
+                    filterMaKhoa.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Lỗi tải khoa:', error);
+            }
+        }
+
+        async function loadKhoa() {
+            try {
+                const response = await fetch('/api/khoas');
+                if (!response.ok) throw new Error('Lỗi tải khoa');
+                const khoaData = await response.json();
+                maKhoaInput.innerHTML = '<option value="">-- Chọn Khoa --</option>';
+                khoaData.forEach(khoa => {
+                    const option = document.createElement('option');
+                    option.value = khoa.maKhoa;
+                    option.textContent = `${khoa.maKhoa} - ${khoa.tenKhoa}`;
+                    maKhoaInput.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Lỗi tải khoa:', error);
+            }
+        }
+
+        async function fetchMonHocs(filters = {}) {
+            showLoading();
+            const params = new URLSearchParams({
+                page: 1,
+                limit: 100,
+                ...filters
+            });
+
+            try {
+                const response = await fetch(`${API_URL}?${params}`);
+                if (!response.ok) throw new Error('Lỗi tải dữ liệu');
+                const result = await response.json();
+                monhocsData = result.data;
+
+                if ($.fn.DataTable.isDataTable('#monhoc-table')) {
+                    dataTable.destroy();
+                }
+
+                const tbody = $('#monhoc-table tbody');
+                tbody.empty();
+
+                result.data.forEach(row => {
+                    const tr = $('<tr>');
+                    tr.append(`<td><input type="checkbox" class="select-row" value="${row.maMH}"></td>`);
+                    tr.append(`<td>${row.maMH}</td>`);
+                    tr.append(`<td>${row.tenMH}</td>`);
+                    tr.append(`<td>${row.soTinChi || ''}</td>`);
+                    tr.append(`<td>${row.tenKhoa || ''}</td>`);
+
+                    const actionTd = $('<td class="action-buttons">');
+                    actionTd.append(`<button onclick="viewMonHocDetails('${row.maMH}')" class="action-btn view-phancong-btn" title="Xem chi tiết"><i class="fas fa-eye"></i></button>`);
+                    actionTd.append(`<button onclick="handleEdit('${row.maMH}')" class="action-btn edit-btn" title="Sửa"><i class="fas fa-edit"></i></button>`);
+                    actionTd.append(`<button onclick="handleDelete('${row.maMH}')" class="action-btn delete-btn" title="Xóa"><i class="fas fa-trash"></i></button>`);
+                    tr.append(actionTd);
+                    tbody.append(tr);
+                });
+
+                dataTable = $('#monhoc-table').DataTable({
+                    "pageLength": 10,
+                    "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Tất cả"]],
+                    "language": {
+                        "url": "https://cdn.datatables.net/plug-ins/1.13.7/i18n/vi.json"
+                    },
+                    "searching": false,
+                    "info": false,
+                    "paging": true,
+                    "ordering": true,
+                    "columnDefs": [
+                        { "orderable": false, "targets": [0, 5] }
+                    ]
+                });
+
+                currentFilters = filters;
+                updateBulkActions();
+            } catch (error) {
+                console.error('Lỗi tải danh sách môn học:', error);
+                alert('Lỗi: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        window.viewMonHocDetails = async function(maMH) {
+            try {
+                showLoading();
+                const response = await fetch(`${API_URL}/${maMH}/details`);
+                if (!response.ok) throw new Error('Không thể tải chi tiết');
+                
+                const data = await response.json();
+                
+                document.getElementById('detail-maMH').textContent = data.info.maMH;
+                document.getElementById('detail-tenMH').textContent = data.info.tenMH;
+                document.getElementById('detail-soTinChi').textContent = data.info.soTinChi;
+                document.getElementById('detail-khoa').textContent = `${data.info.maKhoa} - ${data.info.tenKhoa}`;
+                
+                document.getElementById('detail-studentCount').textContent = data.studentCount;
+                document.getElementById('detail-classCount').textContent = data.classes.length;
+                document.getElementById('detail-avgScore').textContent = data.avgScore || 'N/A';
+                
+                const examDiv = document.getElementById('detail-examSchedule');
+                if (data.examSchedule.length > 0) {
+                    examDiv.innerHTML = data.examSchedule.map(exam => `
+                        <div class="exam-item">
+                            <div><strong>Mã lịch thi:</strong> ${exam.maLT}</div>
+                            <div><strong>Ngày thi:</strong> ${new Date(exam.ngayThi).toLocaleString('vi-VN')}</div>
+                            <div><strong>Phòng thi:</strong> ${exam.phongThi}</div>
+                        </div>
+                    `).join('');
+                } else {
+                    examDiv.innerHTML = '<p class="no-data">Chưa có lịch thi</p>';
+                }
+                
+                const tbody = document.getElementById('detail-classes-tbody');
+                if (data.classes.length > 0) {
+                    tbody.innerHTML = data.classes.map(cls => `
+                        <tr>
+                            <td>${cls.maLop}</td>
+                            <td>${cls.tenLop}</td>
+                            <td>${cls.tenGV || 'Chưa phân công'}</td>
+                            <td>${cls.hocKy || '-'}</td>
+                        </tr>
+                    `).join('');
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="4" class="no-data">Chưa có lớp nào</td></tr>';
+                }
+                
+                detailModal.style.display = 'flex';
+                hideLoading();
+            } catch (error) {
+                console.error('Lỗi tải chi tiết:', error);
+                alert('Không thể tải chi tiết môn học');
+                hideLoading();
+            }
+        };
+
+        $('#select-all').on('change', function() {
+            $('.select-row').prop('checked', this.checked);
+            updateBulkActions();
+        });
+
+        $(document).on('change', '.select-row', function() {
+            const totalCheckboxes = $('.select-row').length;
+            const checkedCheckboxes = $('.select-row:checked').length;
+            $('#select-all').prop('checked', totalCheckboxes > 0 && checkedCheckboxes === totalCheckboxes);
+            updateBulkActions();
+        });
+
+        $('#bulk-delete-btn').on('click', async function() {
+            const selected = $('.select-row:checked').map(function() { return $(this).val(); }).get();
+            if (selected.length === 0) return;
+
+            if (!confirm(`Bạn có chắc chắn muốn xóa ${selected.length} môn học đã chọn?`)) return;
+
+            try {
+                showLoading();
+                for (let maMH of selected) {
+                    const response = await fetch(`${API_URL}/${maMH}`, { method: 'DELETE' });
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || 'Xóa thất bại');
+                    }
+                }
+                alert('Xóa thành công!');
+                await fetchMonHocs(currentFilters);
+                await loadDashboardStats(); // Reload charts
+            } catch (error) {
+                console.error('Lỗi khi xóa bulk:', error);
+                alert(`Thao tác xóa thất bại: ${error.message}`);
+            } finally {
+                hideLoading();
+            }
+        });
+
+        $('#bulk-export-btn').on('click', function() {
+            const selected = $('.select-row:checked').map(function() { return $(this).val(); }).get();
+            if (selected.length === 0) return;
+
+            const selectedStr = selected.join(',');
+            window.open(`${API_URL}/export-selected?selected=${selectedStr}`, '_blank');
+        });
+
+        applyFilterBtn.addEventListener('click', () => {
+            const newFilters = {};
+            if (filterMaKhoa.value) newFilters.maKhoa = filterMaKhoa.value;
+            if (filterSoTinChi.value) newFilters.soTinChi = filterSoTinChi.value;
+            fetchMonHocs(newFilters);
+        });
+
+        clearFilterBtn.addEventListener('click', () => {
+            filterMaKhoa.value = '';
+            filterSoTinChi.value = '';
+            fetchMonHocs({});
+        });
+
+        searchBtn.addEventListener('click', () => {
+            const query = searchInput.value.trim();
+            const newFilters = {};
+            if (query) newFilters._q = query;
+            fetchMonHocs(newFilters);
+        });
+
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') searchBtn.click();
+        });
+
+        addBtn.addEventListener('click', async () => {
+            await loadKhoa();
+            modalTitle.textContent = 'Thêm Môn học mới';
+            submitBtn.textContent = 'Thêm';
+            maMHHiddenInput.value = '';
+            maMHInput.disabled = false;
+            monhocForm.reset();
+            monhocModal.style.display = 'flex';
+        });
+
+        closeBtn.addEventListener('click', () => {
+            monhocModal.style.display = 'none';
+        });
+
+        closeDetailBtn.addEventListener('click', () => {
+            detailModal.style.display = 'none';
+        });
+
+        monhocModal.addEventListener('click', (e) => {
+            if (e.target === monhocModal) monhocModal.style.display = 'none';
+        });
+
+        detailModal.addEventListener('click', (e) => {
+            if (e.target === detailModal) detailModal.style.display = 'none';
+        });
+
+        monhocForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!monhocForm.checkValidity()) {
+                monhocForm.reportValidity();
+                return;
+            }
+            const formData = {
+                maMH: maMHInput.value,
+                tenMH: tenMHInput.value,
+                soTinChi: parseInt(soTinChiInput.value),
+                maKhoa: maKhoaInput.value
+            };
+            const url = maMHHiddenInput.value ? `${API_URL}/${formData.maMH}` : API_URL;
+            const method = maMHHiddenInput.value ? 'PUT' : 'POST';
+
+            try {
+                const response = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Thao tác thất bại');
+                }
+                alert('Thành công!');
+                monhocModal.style.display = 'none';
+                monhocForm.reset();
+                await fetchMonHocs(currentFilters);
+                await loadDashboardStats(); // Reload charts after add/edit
+            } catch (error) {
+                console.error('Submit error:', error);
+                alert('Lỗi: ' + error.message);
+            }
+        });
+
+        window.handleEdit = async function(maMH) {
+            await loadKhoa();
+            const monhoc = monhocsData.find(m => m.maMH === maMH);
+            if (monhoc) {
+                maMHHiddenInput.value = monhoc.maMH; 
+                maMHInput.value = monhoc.maMH;
+                maMHInput.disabled = true;
+                tenMHInput.value = monhoc.tenMH;
+                soTinChiInput.value = monhoc.soTinChi;
+                maKhoaInput.value = monhoc.maKhoa;
+                
+                modalTitle.textContent = 'Cập nhật Môn học';
+                submitBtn.textContent = 'Lưu Thay đổi';
+                monhocModal.style.display = 'flex';
+            }
+        }
+
+        window.handleDelete = async function(maMH) {
+            if (confirm(`Bạn có chắc chắn muốn xóa môn học có Mã MH: ${maMH}?`)) {
+                try {
+                    const response = await fetch(`${API_URL}/${maMH}`, {
+                        method: 'DELETE'
+                    });
+
+                    if (response.ok) {
+                        alert('Xóa môn học thành công!');
+                        await fetchMonHocs(currentFilters);
+                        await loadDashboardStats(); // Reload charts after delete
+                    } else {
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || 'Xóa thất bại');
+                    }
+                } catch (error) {
+                    console.error('Lỗi khi xóa:', error);
+                    alert(`Thao tác xóa thất bại: ${error.message}`);
+                }
+            }
+        }
+
+        const logoutBtn = document.getElementById('logout-btn');
+        logoutBtn.addEventListener('click', () => {
+            if (confirm('Bạn có chắc chắn muốn thoát khỏi hệ thống?')) {
+                sessionStorage.clear();
+                window.location.href = '../index.html';
+            }
+        });
+
+        importFileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file || isUploading) return;  
+            
+            isUploading = true;  
+            importBtn.disabled = true;  
+            importBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang upload...';  
+            
+            const formData = new FormData();
+            formData.append('excelFile', file);
+            
+            try {
+                showLoading();
+                const response = await fetch(`${API_URL}/import`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Import thất bại');
+                }
+                
+                const result = await response.json();
+                alert(result.message || 'Import thành công!');
+                
+                e.target.value = '';
+                await fetchMonHocs(currentFilters);
+                await loadDashboardStats(); // Reload charts after import
+            } catch (error) {
+                console.error('Lỗi import:', error);
+                alert(`Import thất bại: ${error.message}`);
+                e.target.value = ''; 
+            } finally {
+                isUploading = false;
+                importBtn.disabled = false;
+                importBtn.innerHTML = '<i class="fas fa-upload"></i> Import từ File';  
+                hideLoading();
+            }
+        });
+
+        exportBtn.addEventListener('click', async () => {
+            showLoading();
+            try {
+                const response = await fetch(`${API_URL}/export`);
+                if (!response.ok) throw new Error('Export thất bại');
+                
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `danh_sach_mon_hoc_${new Date().toISOString().split('T')[0]}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                hideLoading();
+            } catch (error) {
+                console.error('Lỗi export:', error);
+                alert(`Export thất bại: ${error.message}`);
+                hideLoading();
+            }
+        });
+
+        importBtn.addEventListener('click', () => {
+            importFileInput.click();
+        });
+
+        loadKhoaForFilter();
+        loadDashboardStats();
+        fetchMonHocs({});
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Lịch Thi - Hệ thống</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/giangvien.css">
+    <link rel="stylesheet" href="../css/monhoc.css">
+    <link rel="stylesheet" href="../css/lichthi.css">
+    <script>localStorage.theme === 'dark' && document.documentElement.setAttribute('data-theme', 'dark');</script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+
+<body>
+
+    <div class="sidebar" id="sidebar">
+        <div>
+            <div class="header">
+                <img src="../pictures/admin.jpg" alt="">
+                <div class="info">
+                    <strong>Admin</strong><br>
+                </div>
+            </div>
+            <div class="menu">
+                <a href="../admin/admin.html" class="menu-item"><i class="fa-solid fa-user"></i><span>Quản lý tài
+                        khoản</span></a>
+                <a href="../admin/student.html" class="menu-item"><i class="fas fa-chart-bar"></i><span>Quản lý sinh
+                        viên</span></a>
+                <a href="../admin/giangvienadmin.html" class="menu-item"><i
+                        class="fa-solid fa-graduation-cap"></i><span>Quản lý giảng viên</span></a>
+                <a href="../admin/khoa.html" class="menu-item"><i class="fa-solid fa-building"></i><span>Quản lý
+                        khoa</span></a>
+                <a href="../admin/lophoc.html" class="menu-item"><i class="fas fa-heart"></i><span>Quản lý lớp
+                        học</span></a>
+                <a href="../admin/monhoc.html" class="menu-item"><i class="fas fa-wallet"></i><span>Quản lý môn
+                        học</span></a>
+                <a href="../admin/diem.html" class="menu-item"><i class="fa-solid fa-paintbrush"></i><span>Quản lý
+                        điểm</span></a>
+                <a href="../admin/phancong.html" class="menu-item"><i class="fas fa-tasks"></i><span>Phân công giảng
+                        dạy</span></a>
+                <a href="../admin/lichthi.html" class="menu-item active"><i class="fa-solid fa-bell"></i><span>Quản lý
+                        lịch thi</span></a>
+                <a href="../admin/phanhoi.html" class="menu-item"><i class="fa-solid fa-comments"></i><span>Quản lý phản 
+                        hồi</span></a>
+            </div>
+        </div>
+        <div class="bottom">
+            <div class="menu-item" id="logout-btn"><i class="fas fa-sign-out-alt"></i><span>Thoát</span></div>
+            <div class="toggle-theme">
+                <i class="fas fa-moon"></i><span>Chế độ</span>
+                <label class="switch">
+                    <input type="checkbox" id="theme-toggle">
+                </label>
+            </div>
+            <div class="toggle-sidebar">
+                <i class="fas fa-angle-double-left" id="collapse-icon"></i><span></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="text-center">
+            <h1>Quản lý Lịch Thi 📋</h1>
+        </div>
+
+        <!-- Dashboard Thống kê -->
+        <div class="dashboard-section">
+            <div class="stats-cards">
+                <div class="stat-card stat-card-purple">
+                    <div class="stat-card-content">
+                        <div class="stat-info">
+                            <p class="stat-label">Tổng số lịch thi</p>
+                            <h2 id="total-lichthi" class="stat-value">0</h2>
+                        </div>
+                        <i class="fas fa-calendar-check stat-icon"></i>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-card-pink">
+                    <div class="stat-card-content">
+                        <div class="stat-info">
+                            <p class="stat-label">Lịch thi sắp tới (7 ngày)</p>
+                            <h2 id="upcoming-lichthi" class="stat-value">0</h2>
+                        </div>
+                        <i class="fas fa-hourglass-end stat-icon"></i>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-card-blue">
+                    <div class="stat-card-content">
+                        <div class="stat-info">
+                            <p class="stat-label">Số môn học có thi</p>
+                            <h2 id="total-monhoc-thi" class="stat-value">0</h2>
+                        </div>
+                        <i class="fas fa-book stat-icon"></i>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-card-orange">
+                    <div class="stat-card-content">
+                        <div class="stat-info">
+                            <p class="stat-label">Phòng thi được sử dụng</p>
+                            <h2 id="total-phong-thi" class="stat-value">0</h2>
+                        </div>
+                        <i class="fas fa-door-open stat-icon"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Biểu đồ -->
+            <div class="charts-container">
+                <div class="chart-card">
+                    <h3><i class="fas fa-chart-bar"></i> Phân bố lịch thi theo tháng</h3>
+                    <canvas id="chart-month"></canvas>
+                </div>
+
+                <div class="chart-card">
+                    <h3><i class="fas fa-chart-pie"></i> Phân bố theo môn học</h3>
+                    <canvas id="chart-monhoc"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-bar">
+            <button id="add-lichthi-btn" class="primary-btn"><i class="fas fa-plus"></i> Thêm Lịch Thi</button>
+            <button id="import-btn" class="primary-btn">
+                <i class="fas fa-upload"></i> Import từ File
+            </button>
+            <input type="file" id="import-file" accept=".xlsx,.csv" style="display: none;">
+            <div class="search-bar">
+                <input type="text" id="search-input" placeholder="Tìm kiếm theo Mã LT, Mã MH, Phòng...">
+                <button id="search-btn"><i class="fas fa-search"></i></button>
+            </div>
+            <button id="export-btn" class="secondary-btn" style="margin-left: auto;">
+                <i class="fas fa-download"></i> Export ra Excel</button>
+
+            <div class="filter-section">
+                <select id="filter-khoa" class="filter-select">
+                    <option value="">Tất cả Khoa</option>
+                </select>
+                <select id="filter-lophoc" class="filter-select">
+                    <option value="">Tất cả Lớp Học</option>
+                </select>
+                <select id="filter-monhoc" class="filter-select">
+                    <option value="">Tất cả Môn Học</option>
+                </select>
+                <select id="filter-thang" class="filter-select">
+                    <option value="">Tất cả Tháng</option>
+                </select>
+                <button id="apply-filter" class="primary-btn"><i class="fas fa-filter"></i> Áp dụng</button>
+                <button id="clear-filter" class="secondary-btn"><i class="fas fa-times"></i> Xóa lọc</button>
+            </div>
+        </div>
+
+        <!-- Bulk Actions Section -->
+        <div class="bulk-actions">
+            <div id="selected-count">Không có mục nào được chọn</div>
+            <div>
+                <button id="bulk-delete-btn" class="bulk-btn bulk-delete" disabled><i class="fas fa-trash"></i> Xóa đã
+                    chọn</button>
+                <button id="bulk-export-btn" class="bulk-btn bulk-export" disabled><i class="fas fa-download"></i> Xuất
+                    đã chọn</button>
+            </div>
+        </div>
+
+        <div class="table-card">
+            <h2 class="text-center">Danh sách Lịch Thi</h2>
+            <table id="giangvien-table" class="display">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="select-all"></th>
+                        <th>Mã LT</th>
+                        <th>Khoa</th>
+                        <th>Lớp Học</th>
+                        <th>Mã/Tên Môn Học</th>
+                        <th>Ngày Thi</th>
+                        <th>Phòng Thi</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="loading-spinner" class="spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Đang tải...</p>
+        </div>
+    </div>
+
+    <!-- Modal Thêm/Sửa Lịch Thi -->
+    <div id="lichthi-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2 id="modal-title">Thêm Lịch Thi</h2>
+            <form id="lichthi-form">
+                <input type="hidden" id="lichthi-maLT-hidden">
+
+                <div class="form-group">
+                    <label for="maLT">Mã Lịch Thi (maLT): <span style="color: red;">*</span></label>
+                    <input type="text" id="maLT" required placeholder="VD: LT001">
+                </div>
+
+                <div class="form-group">
+                    <label for="maKhoa">Khoa: <span style="color: red;">*</span></label>
+                    <select id="maKhoa" required>
+                        <option value="">-- Chọn Khoa --</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="maLop">Lớp Học: <span style="color: red;">*</span></label>
+                    <select id="maLop" required>
+                        <option value="">-- Chọn Lớp Học --</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="maMH">Môn Học: <span style="color: red;">*</span></label>
+                    <select id="maMH" required>
+                        <option value="">-- Chọn Môn Học --</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="ngayThi">Ngày Thi: <span style="color: red;">*</span></label>
+                    <input type="datetime-local" id="ngayThi" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="phongThi">Phòng Thi: <span style="color: red;">*</span></label>
+                    <input type="text" id="phongThi" required placeholder="VD: Tòa A1-205">
+                </div>
+
+                <div class="form-group">
+                    <label for="ghiChu">Ghi Chú (tùy chọn):</label>
+                    <textarea id="ghiChu" placeholder="Nhập ghi chú thêm..."></textarea>
+                </div>
+
+                <button type="submit" id="submit-btn">Thêm</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="../js/script.js"></script>
+    <script>
+        // lichthi-improved.js - Quản lý Lịch Thi với giao diện đồng nhất
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const API_BASE_URL = '/api/lichthi';
+            const MONHOC_API_URL = '/api/monhocs';
+
+            // Modal & Form Elements
+            const lichthiModal = document.getElementById('lichthi-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const lichthiForm = document.getElementById('lichthi-form');
+            const submitBtn = document.getElementById('submit-btn');
+            const addBtn = document.getElementById('add-lichthi-btn');
+            const closeBtn = document.querySelector('.close-btn');
+
+            // Form Inputs
+            const maLTHiddenInput = document.getElementById('lichthi-maLT-hidden');
+            const maLTInput = document.getElementById('maLT');
+            const maMHInput = document.getElementById('maMH');
+            const ngayThiInput = document.getElementById('ngayThi');
+            const phongThiInput = document.getElementById('phongThi');
+            const ghiChuInput = document.getElementById('ghiChu');
+
+            // Filter & Search
+            const searchInput = document.getElementById('search-input');
+            const searchBtn = document.getElementById('search-btn');
+            const filterMonHoc = document.getElementById('filter-monhoc');
+            const filterThang = document.getElementById('filter-thang');
+            const applyFilterBtn = document.getElementById('apply-filter');
+            const clearFilterBtn = document.getElementById('clear-filter');
+            const exportBtn = document.getElementById('export-btn');
+
+            // Bulk Actions
+            const selectAllCheckbox = document.getElementById('select-all');
+            const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
+            const bulkExportBtn = document.getElementById('bulk-export-btn');
+
+            const maLopInput = document.getElementById('maLop');
+            const filterLopHoc = document.getElementById('filter-lophoc');
+            const importBtn = document.getElementById('import-btn');
+            const importFileInput = document.getElementById('import-file');
+            const maKhoaInput = document.getElementById('maKhoa'); // THÊM DÒNG NÀY
+            const filterKhoa = document.getElementById('filter-khoa'); // THÊM DÒNG NÀY
+            let lophocData = [];
+            let khoaData = []; // THÊM DÒNG NÀY
+
+            // Data Storage
+            let lichthiData = [];
+            let monhocData = [];
+            let dataTable;
+            let chartMonth = null;
+            let chartMonHoc = null;
+            let currentFilters = {};
+
+            // ===== UTILITY FUNCTIONS =====
+            function showLoading() {
+                document.getElementById('loading-spinner').style.display = 'flex';
+            }
+            async function loadKhoa() {
+                try {
+                    const response = await fetch('/api/khoas');
+                    if (!response.ok) throw new Error('Lỗi tải khoa');
+
+                    const result = await response.json();
+                    khoaData = Array.isArray(result) ? result : result.data || [];
+
+                    // Populate dropdown form
+                    maKhoaInput.innerHTML = '<option value="">-- Chọn Khoa --</option>';
+                    filterKhoa.innerHTML = '<option value="">Tất cả Khoa</option>';
+
+                    khoaData.forEach(khoa => {
+                        const option1 = document.createElement('option');
+                        option1.value = khoa.maKhoa;
+                        option1.textContent = `${khoa.maKhoa} - ${khoa.tenKhoa}`;
+                        maKhoaInput.appendChild(option1);
+
+                        const option2 = document.createElement('option');
+                        option2.value = khoa.maKhoa;
+                        option2.textContent = `${khoa.maKhoa} - ${khoa.tenKhoa}`;
+                        filterKhoa.appendChild(option2);
+                    });
+                } catch (error) {
+                    console.error('Lỗi tải khoa:', error);
+                }
+            }
+
+            function hideLoading() {
+                document.getElementById('loading-spinner').style.display = 'none';
+            }
+
+            function formatDate(isoString) {
+                if (!isoString) return 'N/A';
+                const date = new Date(isoString);
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const year = date.getFullYear();
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                return `${day}/${month}/${year} ${hours}:${minutes}`;
+            }
+
+            function getMonthFromDate(isoString) {
+                if (!isoString) return null;
+                const date = new Date(isoString);
+                return date.getMonth() + 1;
+            }
+
+            function getYearFromDate(isoString) {
+                if (!isoString) return null;
+                const date = new Date(isoString);
+                return date.getFullYear();
+            }
+
+            function isUpcomingLichThi(ngayThi) {
+                const today = new Date();
+                const testDate = new Date(ngayThi);
+                const sevenDaysLater = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+                return testDate >= today && testDate <= sevenDaysLater;
+            }
+
+            async function loadLopHoc() {
+                try {
+                    const response = await fetch('/api/lophocs');
+                    if (!response.ok) throw new Error('Lỗi tải lớp học');
+
+                    const result = await response.json();
+                    lophocData = Array.isArray(result) ? result : result.data || [];
+
+                    // Populate dropdown form
+                    maLopInput.innerHTML = '<option value="">-- Chọn Lớp Học --</option>';
+                    filterLopHoc.innerHTML = '<option value="">Tất cả Lớp Học</option>';
+
+                    lophocData.forEach(lop => {
+                        const option1 = document.createElement('option');
+                        option1.value = lop.maLop;
+                        option1.textContent = `${lop.maLop} - ${lop.tenLop}`;
+                        maLopInput.appendChild(option1);
+
+                        const option2 = document.createElement('option');
+                        option2.value = lop.maLop;
+                        option2.textContent = `${lop.maLop} - ${lop.tenLop}`;
+                        filterLopHoc.appendChild(option2);
+                    });
+                } catch (error) {
+                    console.error('Lỗi tải lớp học:', error);
+                }
+            }
+
+            async function loadMonHoc() {
+                try {
+                    const response = await fetch(MONHOC_API_URL);
+                    if (!response.ok) throw new Error('Lỗi tải môn học');
+
+                    const result = await response.json();
+                    monhocData = Array.isArray(result) ? result : result.data || [];
+
+                    // Populate dropdowns
+                    maMHInput.innerHTML = '<option value="">-- Chọn Môn Học --</option>';
+                    filterMonHoc.innerHTML = '<option value="">Tất cả Môn Học</option>';
+
+                    monhocData.forEach(mon => {
+                        const option1 = document.createElement('option');
+                        option1.value = mon.maMH;
+                        option1.textContent = `${mon.maMH} - ${mon.tenMH}`;
+                        maMHInput.appendChild(option1);
+
+                        const option2 = document.createElement('option');
+                        option2.value = mon.maMH;
+                        option2.textContent = `${mon.maMH} - ${mon.tenMH}`;
+                        filterMonHoc.appendChild(option2);
+                    });
+                } catch (error) {
+                    console.error('Lỗi tải môn học:', error);
+                }
+            }
+
+            function populateMonthFilter() {
+                filterThang.innerHTML = '<option value="">Tất cả Tháng</option>';
+                for (let month = 1; month <= 12; month++) {
+                    const option = document.createElement('option');
+                    option.value = month;
+                    option.textContent = `Tháng ${month}`;
+                    filterThang.appendChild(option);
+                }
+            }
+
+            // ===== DASHBOARD STATS =====
+            async function loadDashboardStats() {
+                try {
+                    showLoading();
+
+                    // Lấy tất cả lịch thi
+                    const response = await fetch(API_BASE_URL);
+                    if (!response.ok) throw new Error('Lỗi tải lịch thi');
+
+                    // Sửa lỗi: Xử lý cả trường hợp API trả về object hoặc array
+                    const result = await response.json();
+                    const allLichThi = Array.isArray(result) ? result : result.data || [];
+
+                    // Tính toán các chỉ số
+                    const totalLichThi = allLichThi.length;
+                    const upcomingLichThi = allLichThi.filter(lt => isUpcomingLichThi(lt.ngayThi)).length;
+                    const uniqueMonHoc = new Set(allLichThi.map(lt => lt.maMH)).size;
+                    const uniquePhongThi = new Set(allLichThi.map(lt => lt.phongThi)).size;
+
+                    // Update stats
+                    document.getElementById('total-lichthi').textContent = totalLichThi;
+                    document.getElementById('upcoming-lichthi').textContent = upcomingLichThi;
+                    document.getElementById('total-monhoc-thi').textContent = uniqueMonHoc;
+                    document.getElementById('total-phong-thi').textContent = uniquePhongThi;
+
+                    // Render charts
+                    renderMonthChart(allLichThi);
+                    renderMonHocChart(allLichThi);
+
+                    hideLoading();
+                } catch (error) {
+                    console.error('Lỗi tải thống kê:', error);
+                    hideLoading();
+                }
+            }
+
+            // ===== CHART FUNCTIONS =====
+            function renderMonthChart(data) {
+                const monthlyData = {};
+                for (let i = 1; i <= 12; i++) {
+                    monthlyData[i] = 0;
+                }
+
+                data.forEach(lt => {
+                    const month = getMonthFromDate(lt.ngayThi);
+                    if (month) monthlyData[month]++;
+                });
+
+                const ctx = document.getElementById('chart-month').getContext('2d');
+
+                if (chartMonth) chartMonth.destroy();
+
+                chartMonth = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
+                            'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'],
+                        datasets: [{
+                            label: 'Số lịch thi',
+                            data: Object.values(monthlyData),
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            borderWidth: 3,
+                            pointBackgroundColor: '#667eea',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 5,
+                            pointHoverRadius: 7
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: { position: 'top' }
+                        },
+                        scales: {
+                            y: { beginAtZero: true }
+                        }
+                    }
+                });
+            }
+
+            function renderMonHocChart(data) {
+                const monhocCount = {};
+                data.forEach(lt => {
+                    if (!monhocCount[lt.tenMH]) {
+                        monhocCount[lt.tenMH] = 0;
+                    }
+                    monhocCount[lt.tenMH]++;
+                });
+
+                const ctx = document.getElementById('chart-monhoc').getContext('2d');
+
+                if (chartMonHoc) chartMonHoc.destroy();
+
+                chartMonHoc = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(monhocCount),
+                        datasets: [{
+                            data: Object.values(monhocCount),
+                            backgroundColor: [
+                                'rgba(102, 126, 234, 0.8)',
+                                'rgba(240, 147, 251, 0.8)',
+                                'rgba(79, 172, 254, 0.8)',
+                                'rgba(250, 112, 154, 0.8)',
+                                'rgba(254, 225, 64, 0.8)',
+                                'rgba(52, 211, 153, 0.8)'
+                            ],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: { position: 'bottom' }
+                        }
+                    }
+                });
+            }
+
+            // Thay thế hàm fetchLichThi trong lichthi.html
+
+            async function fetchLichThi(filters = {}) {
+                showLoading();
+                try {
+                    // Xây dựng URL với query params
+                    let url = `${API_BASE_URL}?page=1&limit=1000`;
+
+                    if (filters._q) {
+                        url += `&_q=${encodeURIComponent(filters._q)}`;
+                    }
+                    if (filters.maKhoa) {
+                        url += `&maKhoa=${encodeURIComponent(filters.maKhoa)}`;
+                    }
+                    if (filters.maMH) {
+                        url += `&maMH=${encodeURIComponent(filters.maMH)}`;
+                    }
+                    if (filters.maLop) {
+                        url += `&maLop=${encodeURIComponent(filters.maLop)}`;
+                    }
+                    if (filters.thang) {
+                        url += `&thang=${encodeURIComponent(filters.thang)}`;
+                    }
+
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error('Lỗi tải dữ liệu');
+
+                    const result = await response.json();
+                    lichthiData = Array.isArray(result.data) ? result.data : [];
+
+                    console.log("🔍 Fetched data:", lichthiData.length, "rows with filters:", filters);
+
+                    renderTable(lichthiData);
+                    currentFilters = filters;
+
+                } catch (error) {
+                    console.error('Lỗi tải lịch thi:', error);
+                    alert('Lỗi: ' + error.message);
+                } finally {
+                    hideLoading();
+                }
+            }
+
+            // Thay thế hàm renderTable trong lichthi.html
+
+            function renderTable(data) {
+                console.log('🔍 Rendering table with data:', data.length, 'rows');
+
+                // ✅ Destroy DataTable an toàn
+                if (dataTable && $.fn.DataTable.isDataTable('#giangvien-table')) {
+                    try {
+                        dataTable.clear().draw();
+                        dataTable.destroy();
+                        dataTable = null;
+                    } catch (e) {
+                        console.warn('Warning destroying DataTable:', e);
+                    }
+                }
+
+                // ✅ Clear tbody only
+                const tbody = document.querySelector("#giangvien-table tbody");
+                if (!tbody) {
+                    console.error("❌ Không tìm thấy tbody!");
+                    return;
+                }
+
+                tbody.innerHTML = data.map(lt => {
+                    const isUpcoming = isUpcomingLichThi(lt.ngayThi) ?
+                        '<i class="fas fa-star" style="color:#f59e0b; margin-right:5px;"></i>' : '';
+
+                    return `
+        <tr>
+            <td><input type="checkbox" class="select-row" value="${lt.maLT}"></td>
+            <td>${lt.maLT}</td>
+            <td>${lt.maKhoa || 'N/A'}${lt.tenKhoa ? ' - ' + lt.tenKhoa : ''}</td>
+            <td>${lt.maLop || 'N/A'}${lt.tenLop ? ' - ' + lt.tenLop : ''}</td>
+            <td>${lt.maMH}${lt.tenMH ? ' - ' + lt.tenMH : ''}</td>
+            <td>${isUpcoming}${formatDate(lt.ngayThi)}</td>
+            <td>${lt.phongThi || 'N/A'}</td>
+            <td class="action-buttons">
+                <button onclick="handleEdit('${lt.maLT}')" class="action-btn edit-btn" title="Sửa">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button onclick="handleDelete('${lt.maLT}')" class="action-btn delete-btn" title="Xóa">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        </tr>
+    `;
+                }).join('');
+
+                // ✅ Khởi tạo DataTable LUÔN (cả khi không có dữ liệu)
+                try {
+                    dataTable = $('#giangvien-table').DataTable({
+                        "pageLength": 10,
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Tất cả"]],
+                        "language": {
+                            "url": "https://cdn.datatables.net/plug-ins/1.13.7/i18n/vi.json",
+                            "emptyTable": "Không có dữ liệu 📋",
+                            "zeroRecords": "Không tìm thấy kết quả phù hợp"
+                        },
+                        "searching": false,
+                        "info": false,
+                        "paging": true,
+                        "ordering": true,
+                        "autoWidth": false,
+                        "columnDefs": [
+                            { "orderable": false, "targets": [0, 7] }
+                        ]
+                    });
+                } catch (e) {
+                    console.error('Lỗi khởi tạo DataTable:', e);
+                }
+
+                updateBulkActions();
+            }
+
+            function openAddModal() {
+                modalTitle.textContent = 'Thêm Lịch Thi';
+                submitBtn.textContent = 'Thêm';
+                maLTHiddenInput.value = '';
+
+                // ✅ ENABLE tất cả các trường
+                maLTInput.disabled = false;
+                maKhoaInput.disabled = false;
+                maLopInput.disabled = true; // Chờ chọn Khoa
+                maMHInput.disabled = true;  // Chờ chọn Khoa
+                ngayThiInput.disabled = false;
+                phongThiInput.disabled = false;
+                ghiChuInput.disabled = false;
+
+                // ✅ RESET FORM
+                lichthiForm.reset();
+
+                // ✅ RESET DROPDOWN về mặc định
+                maKhoaInput.value = '';
+                maLopInput.innerHTML = '<option value="">-- Chọn Lớp Học --</option>';
+                maLopInput.disabled = true;
+                maMHInput.innerHTML = '<option value="">-- Chọn Môn Học --</option>';
+                maMHInput.disabled = true;
+
+                lichthiModal.style.display = 'flex';
+            }
+
+            async function openEditModal(maLT) {
+                const lichthi = lichthiData.find(lt => lt.maLT === maLT);
+                if (!lichthi) return;
+
+                // ✅ Set giá trị hidden
+                maLTHiddenInput.value = lichthi.maLT;
+                maLTInput.value = lichthi.maLT;
+                maLTInput.disabled = true;
+
+                // ✅ Tìm Khoa từ Lớp
+                const lopHoc = lophocData.find(l => l.maLop === lichthi.maLop);
+                const maKhoa = lopHoc ? lopHoc.maKhoa : null;
+
+                if (maKhoa) {
+                    // ✅ Set Khoa và disable
+                    maKhoaInput.value = maKhoa;
+                    maKhoaInput.disabled = true;
+
+                    // ✅ Load lại Lớp và Môn của Khoa để populate dropdown
+                    try {
+                        // Load Lớp
+                        const lopResponse = await fetch(`${API_BASE_URL}/lophoc-by-khoa/${maKhoa}`);
+                        if (lopResponse.ok) {
+                            const lophocs = await lopResponse.json();
+                            maLopInput.innerHTML = '<option value="">-- Chọn Lớp Học --</option>';
+                            lophocs.forEach(lop => {
+                                const option = document.createElement('option');
+                                option.value = lop.maLop;
+                                option.textContent = `${lop.maLop} - ${lop.tenLop}`;
+                                if (lop.maLop === lichthi.maLop) option.selected = true;
+                                maLopInput.appendChild(option);
+                            });
+                            maLopInput.disabled = true; // ✅ Disable sau khi populate
+                        }
+
+                        // Load Môn
+                        const monResponse = await fetch(`${API_BASE_URL}/monhoc-by-khoa/${maKhoa}`);
+                        if (monResponse.ok) {
+                            const monhocs = await monResponse.json();
+                            maMHInput.innerHTML = '<option value="">-- Chọn Môn Học --</option>';
+                            monhocs.forEach(mon => {
+                                const option = document.createElement('option');
+                                option.value = mon.maMH;
+                                option.textContent = `${mon.maMH} - ${mon.tenMH}`;
+                                if (mon.maMH === lichthi.maMH) option.selected = true;
+                                maMHInput.appendChild(option);
+                            });
+                            maMHInput.disabled = true; // ✅ Disable sau khi populate
+                        }
+                    } catch (error) {
+                        console.error('Lỗi load dropdown cho edit:', error);
+                    }
+                }
+
+                // ✅ Chỉ cho sửa các trường này
+                ngayThiInput.value = lichthi.ngayThi ? lichthi.ngayThi.slice(0, 16) : '';
+                ngayThiInput.disabled = false;
+
+                phongThiInput.value = lichthi.phongThi;
+                phongThiInput.disabled = false;
+
+                ghiChuInput.value = lichthi.ghiChu || '';
+                ghiChuInput.disabled = false;
+
+                modalTitle.textContent = 'Cập nhật Lịch Thi';
+                submitBtn.textContent = 'Cập nhật';
+                lichthiModal.style.display = 'flex';
+            }
+
+            maKhoaInput.addEventListener('change', async () => {
+                const maKhoa = maKhoaInput.value;
+
+                // ✅ Reset dropdowns
+                maLopInput.innerHTML = '<option value="">-- Chọn Lớp Học --</option>';
+                maMHInput.innerHTML = '<option value="">-- Chọn Môn Học --</option>';
+                maLopInput.disabled = !maKhoa;
+                maMHInput.disabled = !maKhoa; // ✅ Enable luôn khi có Khoa
+
+                if (!maKhoa) return;
+
+                try {
+                    // ✅ Load Lớp Học theo Khoa (từ bảng lophoc)
+                    const lopResponse = await fetch(`${API_BASE_URL}/lophoc-by-khoa/${maKhoa}`);
+                    if (lopResponse.ok) {
+                        const lophocs = await lopResponse.json();
+                        lophocs.forEach(lop => {
+                            const option = document.createElement('option');
+                            option.value = lop.maLop;
+                            option.textContent = `${lop.maLop} - ${lop.tenLop}`;
+                            maLopInput.appendChild(option);
+                        });
+                    }
+
+                    // ✅ Load Môn Học theo Khoa (từ bảng monhoc)
+                    const monResponse = await fetch(`${API_BASE_URL}/monhoc-by-khoa/${maKhoa}`);
+                    if (monResponse.ok) {
+                        const monhocs = await monResponse.json();
+                        monhocs.forEach(mon => {
+                            const option = document.createElement('option');
+                            option.value = mon.maMH;
+                            option.textContent = `${mon.maMH} - ${mon.tenMH}`;
+                            maMHInput.appendChild(option);
+                        });
+                    }
+                } catch (error) {
+                    console.error('Lỗi load theo khoa:', error);
+                }
+            });
+
+            // ===== FORM SUBMIT =====
+            lichthiForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const maLT_target = maLTHiddenInput.value;
+                const isEdit = !!maLT_target;
+
+                const lichthi = {
+                    maLT: maLTInput.value,
+                    maLop: maLopInput.value,
+                    maMH: maMHInput.value,
+                    ngayThi: ngayThiInput.value,
+                    phongThi: phongThiInput.value,
+                    ghiChu: ghiChuInput.value || null
+                };
+
+                try {
+                    let url = API_BASE_URL;
+                    let method = 'POST';
+                    let successMessage = 'Thêm lịch thi thành công!';
+
+                    if (isEdit) {
+                        url = `${API_BASE_URL}/${maLT_target}`;
+                        method = 'PUT';
+                        successMessage = 'Cập nhật lịch thi thành công!';
+                    }
+
+                    const response = await fetch(url, {
+                        method: method,
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(lichthi)
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || 'Thao tác thất bại');
+                    }
+
+                    alert(successMessage);
+                    lichthiModal.style.display = 'none';
+                    lichthiForm.reset();
+                    maLTInput.disabled = false;
+
+                    await fetchLichThi(currentFilters);
+                    await loadDashboardStats();
+
+                } catch (error) {
+                    console.error('Lỗi:', error);
+                    alert('Lỗi: ' + error.message);
+                }
+            });
+
+            // ===== DELETE FUNCTION =====
+            window.handleDelete = async function (maLT) {
+                if (!confirm(`Bạn có chắc chắn muốn xóa lịch thi: ${maLT}?`)) return;
+
+                try {
+                    showLoading();
+                    const response = await fetch(`${API_BASE_URL}/${maLT}`, { method: 'DELETE' });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || 'Xóa thất bại');
+                    }
+
+                    alert('Xóa lịch thi thành công!');
+                    await fetchLichThi(currentFilters);
+                    await loadDashboardStats();
+
+                } catch (error) {
+                    console.error('Lỗi xóa:', error);
+                    alert('Lỗi: ' + error.message);
+                } finally {
+                    hideLoading();
+                }
+            };
+
+            // ===== EDIT FUNCTION =====
+            window.handleEdit = function (maLT) {
+                openEditModal(maLT);
+            };
+
+            // ===== BULK ACTIONS =====
+            function updateBulkActions() {
+                const selectedCheckboxes = $('.select-row:checked');
+                const count = selectedCheckboxes.length;
+                const totalRows = $('.select-row').length;
+
+                $('#selected-count').text(count === 0 ? 'Không có mục nào được chọn' :
+                    `${count} mục được chọn ${totalRows > 0 ? `(trong ${totalRows})` : ''}`);
+
+                const bulkDiv = $('.bulk-actions');
+                const bulkButtons = $('#bulk-delete-btn, #bulk-export-btn');
+
+                if (count > 0) {
+                    bulkDiv.css('display', 'flex');
+                    bulkButtons.prop('disabled', false);
+                } else {
+                    bulkDiv.css('display', 'none');
+                    bulkButtons.prop('disabled', true);
+                }
+            }
+
+            // Checkbox event handlers
+            selectAllCheckbox.addEventListener('change', function () {
+                $('.select-row').prop('checked', this.checked);
+                updateBulkActions();
+            });
+
+            $(document).on('change', '.select-row', function () {
+                const totalCheckboxes = $('.select-row').length;
+                const checkedCheckboxes = $('.select-row:checked').length;
+                selectAllCheckbox.checked = totalCheckboxes > 0 && checkedCheckboxes === totalCheckboxes;
+                updateBulkActions();
+            });
+
+            // Bulk delete handler
+            bulkDeleteBtn.addEventListener('click', async function () {
+                const selected = $('.select-row:checked').map(function () { return $(this).val(); }).get();
+                if (selected.length === 0) return;
+
+                if (!confirm(`Bạn có chắc chắn muốn xóa ${selected.length} lịch thi đã chọn?`)) return;
+
+                try {
+                    showLoading();
+                    for (let maLT of selected) {
+                        const response = await fetch(`${API_BASE_URL}/${maLT}`, { method: 'DELETE' });
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.message || 'Xóa thất bại');
+                        }
+                    }
+                    alert('Xóa thành công!');
+                    await fetchLichThi(currentFilters);
+                    await loadDashboardStats();
+                } catch (error) {
+                    console.error('Lỗi bulk delete:', error);
+                    alert(`Lỗi: ${error.message}`);
+                } finally {
+                    hideLoading();
+                }
+            });
+
+            // Bulk export handler
+            bulkExportBtn.addEventListener('click', async () => {
+                const selected = $('.select-row:checked').map(function () { return $(this).val(); }).get();
+                if (selected.length === 0) return alert("Chưa chọn mục nào!");
+
+                try {
+                    showLoading();
+                    const response = await fetch(`/api/lichthi/export-selected?selected=${selected.join(',')}`);
+                    if (!response.ok) throw new Error("Lỗi export các mục đã chọn");
+
+                    const blob = await response.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `lich_thi_chon_${new Date().toISOString().split('T')[0]}.xlsx`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                } catch (error) {
+                    console.error(error);
+                    alert("Lỗi khi xuất file Excel đã chọn!");
+                } finally {
+                    hideLoading();
+                }
+            });
+
+
+            searchBtn.addEventListener('click', async () => {
+                const query = searchInput.value.trim();
+                const newFilters = {};
+
+                if (query) {
+                    newFilters._q = query;
+                }
+
+                console.log('🔍 Searching with query:', query);
+                await fetchLichThi(newFilters);
+            });
+
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') searchBtn.click();
+            });
+
+            // Thay thế applyFilterBtn.addEventListener trong lichthi.html
+
+            applyFilterBtn.addEventListener('click', async () => {
+                const newFilters = {};
+
+                // ✅ Thêm filter theo Khoa
+                if (filterKhoa.value) newFilters.maKhoa = filterKhoa.value;
+                if (filterLopHoc.value) newFilters.maLop = filterLopHoc.value;
+                if (filterMonHoc.value) newFilters.maMH = filterMonHoc.value;
+                if (filterThang.value) newFilters.thang = filterThang.value;
+
+                console.log('🔍 Applying filters:', newFilters);
+                await fetchLichThi(newFilters);
+            });
+
+            clearFilterBtn.addEventListener('click', async () => {
+                console.log('🧹 Clearing all filters');
+
+                // ✅ Xóa giá trị của các bộ lọc
+                searchInput.value = '';
+                filterKhoa.value = '';
+                filterLopHoc.value = '';
+                filterMonHoc.value = '';
+                filterThang.value = '';
+
+                // ✅ Reset object chứa điều kiện lọc
+                currentFilters = {};
+
+                // ✅ Load lại toàn bộ dữ liệu
+                await loadLopHoc();
+                await loadMonHoc();
+
+                // ✅ Gọi lại API trả tất cả dữ liệu (không lọc nữa)
+                await fetchLichThi({});
+            });
+
+            // Thay thế đoạn filterKhoa.addEventListener('change') hiện tại
+            filterKhoa.addEventListener('change', async () => {
+                const maKhoa = filterKhoa.value;
+
+                // ✅ THÊM: Reset môn học
+                filterMonHoc.innerHTML = '<option value="">Tất cả Môn Học</option>';
+                filterLopHoc.innerHTML = '<option value="">Tất cả Lớp Học</option>';
+
+                if (!maKhoa) {
+                    await loadLopHoc();
+                    await loadMonHoc();
+                    return;
+                }
+
+                try {
+                    // Load lớp theo khoa
+                    const lopResponse = await fetch(`${API_BASE_URL}/lophoc-by-khoa/${maKhoa}`);
+                    if (lopResponse.ok) {
+                        const lophocs = await lopResponse.json();
+                        lophocs.forEach(lop => {
+                            const option = document.createElement('option');
+                            option.value = lop.maLop;
+                            option.textContent = `${lop.maLop} - ${lop.tenLop}`;
+                            filterLopHoc.appendChild(option);
+                        });
+                    }
+
+                    // ✅ SỬA: Load môn theo khoa (KHÔNG phải theo lớp)
+                    const monResponse = await fetch(`${API_BASE_URL}/monhoc-by-khoa/${maKhoa}`);
+                    if (monResponse.ok) {
+                        const monhocs = await monResponse.json();
+                        monhocs.forEach(mon => {
+                            const option = document.createElement('option');
+                            option.value = mon.maMH;
+                            option.textContent = `${mon.maMH} - ${mon.tenMH}`;
+                            filterMonHoc.appendChild(option);
+                        });
+                    }
+                } catch (error) {
+                    console.error('Lỗi load filter theo khoa:', error);
+                }
+            });
+
+            importBtn.addEventListener('click', () => {
+                importFileInput.click();
+            });
+
+            importFileInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const formData = new FormData();
+                formData.append('excelFile', file);
+
+                try {
+                    showLoading();
+                    const response = await fetch(`${API_BASE_URL}/import`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        alert(result.message);
+                        if (result.errors && result.errors.length > 0) {
+                            console.error('Import errors:', result.errors);
+                        }
+                        await fetchLichThi(currentFilters);
+                        await loadDashboardStats();
+                    } else {
+                        alert('Lỗi import: ' + result.message);
+                    }
+                } catch (error) {
+                    console.error('Lỗi import:', error);
+                    alert('Lỗi import: ' + error.message);
+                } finally {
+                    hideLoading();
+                    importFileInput.value = '';
+                }
+            });
+
+
+
+            function exportAsCSV(data, filename) {
+                const headers = ['Mã LT', 'Mã MH', 'Tên Môn Học', 'Ngày Thi', 'Phòng Thi', 'Ghi Chú'];
+                const rows = data.map(lt => [
+                    lt.maLT,
+                    lt.maMH,
+                    lt.tenMH || '',
+                    formatDate(lt.ngayThi),
+                    lt.phongThi || '',
+                    lt.ghiChu || ''
+                ]);
+
+                let csv = headers.join(',') + '\n';
+                rows.forEach(row => {
+                    csv += row.map(cell => `"${cell}"`).join(',') + '\n';
+                });
+
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = filename;
+                link.click();
+            }
+
+            // ✅ Export toàn bộ lịch thi từ backend (Excel thật .xlsx)
+            exportBtn.addEventListener('click', async () => {
+                try {
+                    showLoading();
+                    const response = await fetch('/api/lichthi/export');
+                    if (!response.ok) throw new Error("Lỗi export Excel từ server");
+
+                    const blob = await response.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `lich_thi_${new Date().toISOString().split('T')[0]}.xlsx`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                } catch (error) {
+                    console.error(error);
+                    alert("Xuất Excel thất bại!");
+                } finally {
+                    hideLoading();
+                }
+            });
+
+            // ===== MODAL EVENT LISTENERS =====
+            addBtn.addEventListener('click', () => {
+                maLTInput.disabled = false;
+                openAddModal();
+            });
+
+            closeBtn.addEventListener('click', () => {
+                lichthiModal.style.display = 'none';
+            });
+
+            lichthiModal.addEventListener('click', (e) => {
+                if (e.target === lichthiModal) lichthiModal.style.display = 'none';
+            });
+
+            // ===== LOGOUT =====
+            const logoutBtn = document.getElementById('logout-btn');
+            logoutBtn.addEventListener('click', () => {
+                if (confirm('Bạn có chắc chắn muốn thoát khỏi hệ thống?')) {
+                    sessionStorage.clear();
+                    localStorage.removeItem('userToken');
+                    localStorage.removeItem('userRole');
+                    window.location.href = '../index.html';
+                }
+            });
+
+            async function initialize() {
+                try {
+                    showLoading();
+                    await loadKhoa();
+                    await loadLopHoc();
+                    await loadMonHoc();
+                    populateMonthFilter();
+                    await loadDashboardStats();
+                    await fetchLichThi({}); // ✅ Truyền object rỗng
+                } catch (error) {
+                    console.error('Lỗi khởi tạo:', error);
+                } finally {
+                    hideLoading();
+                }
+            }
+
+            initialize();
+        });
+    </script>
+</body>
+
+</html>

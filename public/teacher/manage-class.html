@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Lớp Học - Trang Giảng Viên</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        /* Import CSS variables from teacher.css */
+        :root {
+            --bg-light: #f8fafc;
+            --bg-dark: #1e293b;
+            --text-light: #1e293b;
+            --text-dark: #ffffff;
+            --primary: #f97316;
+            --primary-hover: #ea580c;
+            --secondary: #3b82f6;
+            --secondary-hover: #2563eb;
+            --success: #10b981;
+            --success-hover: #059669;
+            --danger: #dc2626;
+            --danger-hover: #b91c1c;
+            --border-color: #e2e8f0;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --border-radius: 8px;
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --spacing-xl: 32px;
+        }
+
+        /* ===== STYLING CHO BUTTON TRONG TABLE ===== */
+        .action-buttons {
+            display: flex;
+            gap: var(--spacing-sm);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .view-btn, .schedule-btn {
+            padding: var(--spacing-xs) var(--spacing-md);
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            white-space: nowrap;
+        }
+
+        .view-btn {
+            background: linear-gradient(135deg, var(--secondary) 0%, #1d4ed8 100%);
+            color: var(--text-dark);
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+        }
+
+        .view-btn:hover {
+            background: linear-gradient(135deg, var(--secondary-hover) 0%, #1e40af 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+        }
+
+        .schedule-btn {
+            background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+            color: var(--text-dark);
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+        }
+
+        .schedule-btn:hover {
+            background: linear-gradient(135deg, var(--success-hover) 0%, #047857 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+        }
+
+        .view-btn i, .schedule-btn i {
+            font-size: 13px;
+        }
+
+        /* ===== MODAL OVERLAY ===== */
+        #schedule-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        #schedule-modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 1;
+        }
+
+        /* ===== MODAL CONTENT ===== */
+        .modal {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: var(--shadow-hover);
+            width: 95%;
+            max-width: 1200px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalSlideIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(-30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* ===== MODAL HEADER ===== */
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+            color: var(--text-dark);
+            padding: var(--spacing-lg);
+            border-radius: 16px 16px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 20px;
+            font-weight: 700;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .modal-header i {
+            margin-right: var(--spacing-sm);
+        }
+
+        .close {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: var(--text-dark);
+            font-size: 28px;
+            font-weight: 700;
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .close:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+
+        /* ===== MODAL BODY ===== */
+        .modal-body {
+            padding: var(--spacing-xl);
+        }
+
+        /* ===== SECTION STYLING ===== */
+        .section {
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .section-header {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-light);
+            margin-bottom: var(--spacing-md);
+            padding-bottom: var(--spacing-sm);
+            border-bottom: 3px solid var(--primary);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .section-header i {
+            color: var(--primary);
+            font-size: 20px;
+        }
+
+        /* ===== INFO GRID ===== */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--spacing-md);
+            background: var(--bg-light);
+            padding: var(--spacing-lg);
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xs);
+        }
+
+        .info-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        /* ===== SCHEDULE TABLE ===== */
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #ffffff;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .schedule-table thead {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+            color: var(--text-dark);
+        }
+
+        .schedule-table th {
+            padding: var(--spacing-md);
+            text-align: left;
+            font-weight: 700;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .schedule-table tbody tr {
+            border-bottom: 1px solid var(--border-color);
+            transition: var(--transition);
+        }
+
+        .schedule-table tbody tr:hover {
+            background: rgba(249, 115, 22, 0.05);
+        }
+
+        .schedule-table td {
+            padding: var(--spacing-md);
+            font-size: 15px;
+            color: var(--text-light);
+        }
+
+        .schedule-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        /* ===== NO SCHEDULE MESSAGE ===== */
+        .no-schedule {
+            text-align: center;
+            padding: var(--spacing-xl);
+            color: #94a3b8;
+            font-size: 16px;
+            background: var(--bg-light);
+            border-radius: var(--border-radius);
+            border: 2px dashed var(--border-color);
+        }
+
+        .no-schedule i {
+            font-size: 48px;
+            margin-bottom: var(--spacing-md);
+            display: block;
+            color: #cbd5e1;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .modal {
+                width: 95%;
+                max-height: 90vh;
+            }
+
+            .modal-header {
+                font-size: 18px;
+                padding: var(--spacing-md);
+            }
+
+            .modal-body {
+                padding: var(--spacing-md);
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .view-btn, .schedule-btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .schedule-table {
+                font-size: 13px;
+            }
+
+            .schedule-table th,
+            .schedule-table td {
+                padding: var(--spacing-sm);
+            }
+        }
+
+        /* ===== SCROLLBAR STYLING ===== */
+        .modal::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .modal::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        .modal::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 4px;
+        }
+
+        .modal::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-hover);
+        }
+    </style>
+    <link rel="stylesheet" href="../css/teacher.css">
+</head>
+
+<body>
+    <div class="sidebar">
+        <div class="header">
+            <img src="../pictures/gv.jpg" alt="Avatar">
+            <div class="info">
+                <strong id="user-name">Teacher</strong>
+            </div>
+        </div>
+        <div class="menu">
+            <a href="giangvien.html" class="menu-item"><i class="fa-solid fa-user" style="font-size: 25px"></i>Danh sách
+                sinh viên</a>
+            <a href="manage-class.html" class="menu-item active"><i class="fa-solid fa-landmark"
+                    style="font-size: 25px"></i>Quản lý lớp học</a>
+            <a href="manage-grades.html" class="menu-item"><i class="fa-solid fa-graduation-cap"
+                    style="font-size: 25px"></i>Quản lý điểm</a>
+            <a href="exam-schedule.html" class="menu-item"><i class="fa-solid fa-bell" style="font-size: 25px"></i>Xem
+                lịch thi</a>
+            <a href="personal-info.html" class="menu-item"><i class="fa-solid fa-circle-user"
+                    style="font-size: 30px"></i>Thông tin cá nhân</a>
+        </div>
+        <div class="bottom">
+            <div class="menu-item logout-btn" id="logout-btn">
+                <i class="fas fa-sign-out-alt"></i><span>Đăng xuất</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="welcome">
+            <h1><i class="fas fa-chalkboard-teacher"></i> Quản lý lớp học - Môn học - Được phân công</h1>
+            <div class="search-container">
+                <input type="text" id="search-input" class="search-input"
+                    placeholder="Tìm kiếm theo mã lớp, tên lớp, môn học...">
+                <button onclick="searchClasses()" class="action-btn search-btn"><i class="fas fa-search"></i> Tìm
+                    kiếm</button>
+                <button onclick="loadClasses()" class="action-btn reset-btn"><i class="fas fa-sync-alt"></i> Tải
+                    lại</button>
+            </div>
+            <div class="table-container">
+                <table id="classes-table">
+                    <thead>
+                        <tr>
+                            <th>STT</th>
+                            <th>Mã Lớp</th>
+                            <th>Tên Lớp</th>
+                            <th>Mã Môn</th>
+                            <th>Tên Môn</th>
+                            <th>Mã Khoa</th>
+                            <th>Tên Khoa</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="classes-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal cho lịch dạy -->
+    <div id="schedule-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <span><i class="fas fa-calendar-week"></i> Chi tiết lịch giảng dạy</span>
+                <button class="close" onclick="closeScheduleModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="section">
+                    <div class="section-header">
+                        <i class="fas fa-info-circle"></i>
+                        Thông tin cơ bản
+                    </div>
+                    <div class="info-grid" id="basic-info-grid">
+                        <!-- Nội dung sẽ được JS generate -->
+                    </div>
+                </div>
+                <div class="section">
+                    <div class="section-header">
+                        <i class="fas fa-calendar-alt"></i>
+                        Lịch giảng dạy
+                    </div>
+                    <div id="schedule-content">
+                        <!-- Nội dung table sẽ được JS generate -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Kiểm tra vai trò
+        const userRole = sessionStorage.getItem('userRole');
+        const maTK = sessionStorage.getItem('maTK');
+        if (userRole !== 'GiangVien' || !maTK) {
+            window.location.href = '../index.html';
+        }
+
+        // API base URL
+        const API_BASE = 'http://localhost:3000/api';
+
+        let maGV = '';
+
+        // Load thông tin user name
+        async function loadUserName() {
+            try {
+                const response = await fetch(`${API_BASE}/sinhviengv/info?maTK=${maTK}`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+                document.getElementById('user-name').textContent = data.hoTen || 'Teacher';
+                maGV = data.maGV;
+                console.log('Loaded maGV:', maGV);
+            } catch (error) {
+                console.error('Lỗi load tên user:', error);
+                document.getElementById('user-name').textContent = 'Giảng Viên';
+            }
+        }
+
+        // Load danh sách lớp học
+        async function loadClasses(query = '') {
+            try {
+                const url = `${API_BASE}/sinhviengv/classes?maTK=${maTK}${query ? '&_q=' + encodeURIComponent(query) : ''}`;
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const classes = await response.json();
+
+                if (!Array.isArray(classes)) throw new Error('Dữ liệu trả về không phải là mảng');
+
+                const tbody = document.getElementById('classes-tbody');
+                if (classes.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" class="no-data">Không có lớp học nào được phân công.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = classes.map((cls, index) => `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td><strong>${cls.maLop || ''}</strong></td>
+                        <td>${cls.tenLop || ''}</td>
+                        <td><strong>${cls.maMH || ''}</strong></td>
+                        <td>${cls.tenMH || ''}</td>
+                        <td>${cls.maKhoa || ''}</td>
+                        <td>${cls.tenKhoa || ''}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="view-btn" onclick="viewStudents('${cls.maLop}', '${cls.maMH}')">
+                                    <i class="fas fa-users"></i> Xem SV
+                                </button>
+                                <button class="schedule-btn" onclick="viewSchedule('${cls.id}')">
+                                    <i class="fas fa-calendar-alt"></i> Xem Lịch
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Lỗi load lớp học:', error);
+                document.getElementById('classes-tbody').innerHTML = '<tr><td colspan="8" class="no-data">Lỗi tải dữ liệu. Vui lòng thử lại.</td></tr>';
+            }
+        }
+
+        // Xem danh sách sinh viên của lớp và môn
+        function viewStudents(maLop, maMH) {
+            window.location.href = `giangvien.html?class=${encodeURIComponent(maLop)}&subject=${encodeURIComponent(maMH)}`;
+        }
+
+        // Xem lịch dạy của phân công
+        async function viewSchedule(id) {
+            console.log('Viewing schedule for id:', id, 'maGV:', maGV);
+            if (!maGV) {
+                alert('Chưa tải thông tin giảng viên. Vui lòng tải lại trang.');
+                return;
+            }
+            try {
+                const url = `${API_BASE}/phancong?maGV=${maGV}`;
+                console.log('Fetching from:', url);
+                const response = await fetch(url);
+                console.log('Response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status} - ${await response.text()}`);
+                }
+                const phanCongData = await response.json();
+                console.log('PhanCong data:', phanCongData);
+
+                // Tìm phân công theo id
+                const phanCong = phanCongData.find(item => parseInt(item.id) === parseInt(id));
+                console.log('Found phanCong:', phanCong);
+                if (!phanCong) {
+                    alert('Không tìm thấy phân công này.');
+                    return;
+                }
+
+                // Generate thông tin cơ bản
+                const basicInfoGrid = document.getElementById('basic-info-grid');
+                basicInfoGrid.innerHTML = `
+                    <div class="info-item">
+                        <span class="info-label"><i class="fas fa-school"></i> Lớp học</span>
+                        <span class="info-value">${phanCong.maLop} - ${phanCong.tenLop}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label"><i class="fas fa-book"></i> Môn học</span>
+                        <span class="info-value">${phanCong.maMH} - ${phanCong.tenMH}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label"><i class="fas fa-user-tie"></i> Giảng viên</span>
+                        <span class="info-value">${phanCong.hoTen || 'N/A'}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label"><i class="fas fa-calendar-check"></i> Học kỳ</span>
+                        <span class="info-value">${phanCong.hocKy || 'N/A'}</span>
+                    </div>
+                `;
+
+                // Generate table lịch
+                const content = document.getElementById('schedule-content');
+                if (phanCong.lich && phanCong.lich.length > 0) {
+                    let tableHTML = `
+                        <table class="schedule-table">
+                            <thead>
+                                <tr>
+                                    <th><i class="fas fa-calendar-day"></i> Thứ</th>
+                                    <th><i class="fas fa-clock"></i> Tiết bắt đầu</th>
+                                    <th><i class="fas fa-hourglass-half"></i> Số tiết</th>
+                                    <th><i class="fas fa-door-open"></i> Phòng học</th>
+                                    <th><i class="fas fa-sticky-note"></i> Ghi chú</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    phanCong.lich.forEach(lich => {
+                        const thuMap = {
+                            2: 'Hai', 3: 'Ba', 4: 'Tư', 5: 'Năm', 
+                            6: 'Sáu', 7: 'Bảy', 8: 'CN'
+                        };
+                        tableHTML += `
+                            <tr>
+                                <td><strong>Thứ ${thuMap[lich.thu_tuan] || lich.thu_tuan}</strong></td>
+                                <td>Tiết ${lich.tiet_bat_dau}</td>
+                                <td>${lich.so_tiet} tiết</td>
+                                <td><strong>${lich.phong_hoc || 'Chưa có'}</strong></td>
+                                <td>${lich.ghi_chu || 'Không có'}</td>
+                            </tr>
+                        `;
+                    });
+                    tableHTML += '</tbody></table>';
+                    content.innerHTML = tableHTML;
+                } else {
+                    content.innerHTML = `
+                        <div class="no-schedule">
+                            <i class="fas fa-calendar-times"></i>
+                            <div>Chưa có lịch dạy cho phân công này.</div>
+                        </div>
+                    `;
+                }
+
+                // Hiển thị modal
+                const modalOverlay = document.getElementById('schedule-modal');
+                if (modalOverlay) {
+                    modalOverlay.classList.add('show');
+                    console.log('Modal opened successfully');
+                } else {
+                    console.error('schedule-modal not found');
+                }
+            } catch (error) {
+                console.error('Lỗi load lịch dạy:', error);
+                alert('Lỗi tải lịch dạy: ' + error.message + '. Vui lòng kiểm tra console.');
+            }
+        }
+
+        // Đóng modal lịch
+        function closeScheduleModal() {
+            const modalOverlay = document.getElementById('schedule-modal');
+            if (modalOverlay) {
+                modalOverlay.classList.remove('show');
+            }
+        }
+
+        // Tìm kiếm lớp
+        function searchClasses() {
+            const query = document.getElementById('search-input').value;
+            loadClasses(query);
+        }
+
+        // Đăng xuất
+        const logoutBtn = document.getElementById('logout-btn');
+        logoutBtn.addEventListener('click', () => {
+            if (confirm('Bạn có chắc chắn muốn thoát khỏi hệ thống?')) {
+                sessionStorage.clear();
+                window.location.href = '../index.html';
+            }
+        });
+
+        // Khởi tạo
+        document.addEventListener('DOMContentLoaded', () => {
+            loadUserName();
+            loadClasses();
+        });
+
+        // Đóng modal khi click ngoài
+        window.onclick = function (event) {
+            const modal = document.getElementById('schedule-modal');
+            if (event.target === modal) {
+                closeScheduleModal();
+            }
+        }
+    </script>
+</body>
+
+</html>

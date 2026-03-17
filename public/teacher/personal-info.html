@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông tin cá nhân - Trang Giảng Viên</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/teacher.css">
+    <style>
+        .info-container {
+            background: white;
+            padding: var(--spacing-lg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .info-section h3 {
+            font-size: var(--font-size-lg);
+            color: var(--text-light);
+            margin-bottom: var(--spacing-md);
+            padding-bottom: var(--spacing-sm);
+            border-bottom: 3px solid var(--primary);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            font-weight: 700;
+        }
+
+        .info-section h3 i {
+            color: var(--primary);
+        }
+
+        .info-group {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-sm);
+            align-items: center;
+        }
+
+        .info-group label {
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .info-group span {
+            color: var(--text-light);
+        }
+
+        .action-container {
+            display: flex;
+            gap: var(--spacing-md);
+            justify-content: center;
+            margin-top: var(--spacing-lg);
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+            color: var(--text-dark);
+            padding: var(--spacing-md) var(--spacing-lg);
+            border: none;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+        }
+
+        .form-container {
+            background: white;
+            padding: var(--spacing-xl);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-xl);
+            margin-top: var(--spacing-lg);
+        }
+
+        .form-container.show {
+            display: block;
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .edit-group,
+        .password-group {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-sm);
+            align-items: center;
+        }
+
+        .edit-group label,
+        .password-group label {
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .edit-group input,
+        .edit-group select,
+        .password-group input {
+            padding: var(--spacing-sm);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            font-size: var(--font-size-sm);
+            transition: var(--transition);
+        }
+
+        .edit-group input:focus,
+        .edit-group select:focus,
+        .password-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        .form-buttons {
+            display: flex;
+            gap: var(--spacing-md);
+            justify-content: flex-end;
+            margin-top: var(--spacing-lg);
+        }
+
+        .save-btn {
+            background: linear-gradient(135deg, var(--success) 0%, var(--success-hover) 100%);
+        }
+
+        .save-btn:hover {
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .cancel-btn {
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-hover) 100%);
+        }
+
+        .cancel-btn:hover {
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 768px) {
+
+            .info-group,
+            .edit-group,
+            .password-group {
+                grid-template-columns: 1fr;
+            }
+
+            .action-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .action-btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .form-buttons {
+                flex-direction: column;
+            }
+
+            .save-btn,
+            .cancel-btn {
+                width: 100%;
+            }
+        }
+
+        .password-group input {
+            padding-right: 40px !important;
+            /* Tạo khoảng trống cho icon */
+        }
+
+        .password-toggle:hover {
+            color: var(--primary) !important;
+        }
+
+        .password-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .password-wrapper input {
+            padding-right: 40px !important;
+            width: 100%;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            cursor: pointer;
+            color: #64748b;
+            transition: color 0.3s ease;
+        }
+
+        .password-toggle:hover {
+            color: var(--primary);
+        }
+
+        .password-group {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-sm);
+            align-items: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <div class="header">
+            <img src="../pictures/gv.jpg" alt="Avatar">
+            <div class="info">
+                <strong id="user-name">Teacher</strong>
+            </div>
+        </div>
+        <div class="menu">
+            <a href="giangvien.html" class="menu-item"><i class="fa-solid fa-user" style="font-size: 25px"></i>Danh sách
+                sinh viên</a>
+            <a href="manage-class.html" class="menu-item"><i class="fa-solid fa-landmark"
+                    style="font-size: 25px"></i>Quản lý lớp học</a>
+            <a href="manage-grades.html" class="menu-item"><i class="fa-solid fa-graduation-cap"
+                    style="font-size: 25px"></i>Quản lý điểm</a>
+            <a href="exam-schedule.html" class="menu-item"><i class="fa-solid fa-bell" style="font-size: 25px"></i>Xem
+                lịch thi</a>
+            <a href="personal-info.html" class="menu-item active"><i class="fa-solid fa-circle-user"
+                    style="font-size: 30px"></i>Thông tin cá nhân</a>
+        </div>
+        <div class="bottom">
+            <div class="menu-item logout-btn" id="logout-btn">
+                <i class="fas fa-sign-out-alt"></i><span>Đăng xuất</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="welcome">
+            <h1><i class="fas fa-user-circle"></i> Thông tin cá nhân</h1>
+            <div class="info-container">
+                <div class="info-section">
+                    <h3><i class="fas fa-user-graduate"></i> Thông tin giảng viên</h3>
+                    <div class="info-group">
+                        <label>Mã Giảng Viên:</label>
+                        <span id="maGV"></span>
+                    </div>
+                    <div class="info-group">
+                        <label>Họ và Tên:</label>
+                        <span id="hoTen"></span>
+                    </div>
+                    <div class="info-group">
+                        <label>Học Vị:</label>
+                        <span id="hocVi"></span>
+                    </div>
+                    <div class="info-group">
+                        <label>Email:</label>
+                        <span id="email"></span>
+                    </div>
+                    <div class="info-group">
+                        <label>Số Điện Thoại:</label>
+                        <span id="sdt"></span>
+                    </div>
+                    <div class="info-group">
+                        <label>Mã Khoa:</label>
+                        <span id="maKhoa"></span>
+                    </div>
+                    <div class="info-group">
+                        <label>Tên Khoa:</label>
+                        <span id="tenKhoa"></span>
+                    </div>
+                </div>
+                <div class="action-container">
+                    <button onclick="showEditForm()" class="action-btn edit-btn"><i class="fas fa-edit"></i> Sửa thông
+                        tin</button>
+                    <button onclick="showPasswordForm()" class="action-btn change-password-btn"><i
+                            class="fas fa-key"></i> Đổi mật khẩu</button>
+                </div>
+            </div>
+
+            <!-- Form sửa thông tin -->
+            <div id="edit-form" class="form-container">
+                <h3><i class="fas fa-edit"></i> Sửa thông tin giảng viên</h3>
+                <form id="editForm">
+                    <div class="edit-group">
+                        <label>Họ và Tên:</label>
+                        <input type="text" id="editHoTen" required>
+                    </div>
+                    <div class="edit-group">
+                        <label>Học Vị:</label>
+                        <input type="text" id="editHocVi" disabled style="background: #f3f4f6; cursor: not-allowed;">
+                    </div>
+                    <div class="edit-group">
+                        <label>Email:</label>
+                        <input type="email" id="editEmail">
+                    </div>
+                    <div class="edit-group">
+                        <label>Số Điện Thoại:</label>
+                        <input type="text" id="editSdt">
+                    </div>
+                    <div class="edit-group">
+                        <label>Mã Khoa:</label>
+                        <input type="text" id="editMaKhoa" disabled style="background: #f3f4f6; cursor: not-allowed;">
+                    </div>
+                    <p style="color: #f97316; font-size: 14px; margin-top: 10px; font-style: italic;">
+                        <i class="fas fa-info-circle"></i> Học vị và Khoa không thể thay đổi sau khi tạo tài khoản.
+                    </p>
+                    <div class="form-buttons">
+                        <button type="button" onclick="hideEditForm()" class="action-btn cancel-btn"><i
+                                class="fas fa-times"></i> Hủy</button>
+                        <button type="submit" class="action-btn save-btn"><i class="fas fa-save"></i> Lưu thay
+                            đổi</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Form đổi mật khẩu -->
+            <div id="password-form" class="form-container">
+                <h3><i class="fas fa-key"></i> Đổi mật khẩu</h3>
+                <form id="passwordForm">
+                    <div class="password-group">
+                        <label>Mật khẩu hiện tại:</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="currentPassword" required>
+                            <i class="fas fa-eye password-toggle" onclick="togglePassword('currentPassword')"></i>
+                        </div>
+                    </div>
+                    <div class="password-group">
+                        <label>Mật khẩu mới:</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="newPassword" required minlength="6">
+                            <i class="fas fa-eye password-toggle" onclick="togglePassword('newPassword')"></i>
+                        </div>
+                    </div>
+                    <div class="password-group">
+                        <label>Xác nhận mật khẩu mới:</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="confirmPassword" required minlength="6">
+                            <i class="fas fa-eye password-toggle" onclick="togglePassword('confirmPassword')"></i>
+                        </div>
+                    </div>
+                    <div class="form-buttons">
+                        <button type="button" onclick="hidePasswordForm()" class="action-btn cancel-btn">
+                            <i class="fas fa-times"></i> Hủy
+                        </button>
+                        <button type="submit" class="action-btn save-btn">
+                            <i class="fas fa-save"></i> Đổi mật khẩu
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Kiểm tra vai trò
+        const userRole = sessionStorage.getItem('userRole');
+        const maTK = sessionStorage.getItem('maTK');
+        if (userRole !== 'GiangVien' || !maTK) {
+            window.location.href = '../index.html';
+        }
+
+        // API base URL
+        const API_BASE = 'http://localhost:3000/api';
+
+        let currentUserInfo = {};
+
+        // Load thông tin user - SỬA DỤNG ĐÚNG ENDPOINT
+        async function loadUserInfo() {
+            try {
+                // Sử dụng endpoint /api/giangvien/info?maTK=...
+                const response = await fetch(`${API_BASE}/giangvien/info?maTK=${maTK}`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                currentUserInfo = await response.json();
+
+                document.getElementById('user-name').textContent = currentUserInfo.hoTen || 'Teacher';
+                document.getElementById('maGV').textContent = currentUserInfo.maGV || '';
+                document.getElementById('hoTen').textContent = currentUserInfo.hoTen || '';
+                document.getElementById('hocVi').textContent = currentUserInfo.hocVi || '';
+                document.getElementById('email').textContent = currentUserInfo.email || '';
+                document.getElementById('sdt').textContent = currentUserInfo.sdt || '';
+                document.getElementById('maKhoa').textContent = currentUserInfo.maKhoa || '';
+                document.getElementById('tenKhoa').textContent = currentUserInfo.tenKhoa || '';
+
+                // Set giá trị mặc định cho edit form
+                document.getElementById('editHoTen').value = currentUserInfo.hoTen || '';
+                document.getElementById('editHocVi').value = currentUserInfo.hocVi || '';
+                document.getElementById('editEmail').value = currentUserInfo.email || '';
+                document.getElementById('editSdt').value = currentUserInfo.sdt || '';
+                document.getElementById('editMaKhoa').value = currentUserInfo.tenKhoa || ''; // Hiển thị tên khoa
+            } catch (error) {
+                console.error('Lỗi load user info:', error);
+                alert('Lỗi tải thông tin. Vui lòng thử lại.');
+            }
+        }
+
+        // Load danh sách khoa cho select
+        async function loadKhoaOptions() {
+            try {
+                const response = await fetch(`${API_BASE}/khoas`);
+                if (!response.ok) throw new Error('Lỗi tải khoa');
+                const khoaList = await response.json();
+                const select = document.getElementById('editMaKhoa');
+                khoaList.forEach(khoa => {
+                    const option = document.createElement('option');
+                    option.value = khoa.maKhoa;
+                    option.textContent = khoa.tenKhoa;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Lỗi load khoa:', error);
+            }
+        }
+
+        // Hiển thị form sửa thông tin
+        function showEditForm() {
+            const editForm = document.getElementById('edit-form');
+            const passwordForm = document.getElementById('password-form');
+
+            editForm.classList.remove('hidden');
+            passwordForm.classList.add('hidden');
+        }
+
+        // Ẩn form sửa thông tin
+        function hideEditForm() {
+            document.getElementById('edit-form').classList.add('hidden');
+        }
+
+        // Hiển thị form đổi mật khẩu
+        function showPasswordForm() {
+            const editForm = document.getElementById('edit-form');
+            const passwordForm = document.getElementById('password-form');
+
+            passwordForm.classList.remove('hidden');
+            editForm.classList.add('hidden');
+        }
+
+        // Ẩn form đổi mật khẩu
+        function hidePasswordForm() {
+            document.getElementById('password-form').classList.add('hidden');
+            document.getElementById('currentPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+        }
+
+        // Submit form sửa thông tin - CHỈ GỬI CÁC TRƯỜNG CHO PHÉP CẬP NHẬT
+        document.getElementById('editForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // CHỈ gửi các trường được phép cập nhật (KHÔNG gửi maTK và maKhoa)
+            const updatedData = {
+                hoTen: document.getElementById('editHoTen').value,
+                email: document.getElementById('editEmail').value,
+                sdt: document.getElementById('editSdt').value
+                // KHÔNG gửi maKhoa và maTK vì chúng không được phép thay đổi
+            };
+
+            try {
+                // Gọi PUT /api/giangvien/:maGV
+                const response = await fetch(`${API_BASE}/giangvien/${currentUserInfo.maGV}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedData)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                alert(result.message || 'Cập nhật thành công');
+                hideEditForm();
+                await loadUserInfo(); // Reload để cập nhật display
+            } catch (error) {
+                console.error('Lỗi cập nhật:', error);
+                alert('Lỗi cập nhật thông tin: ' + error.message);
+            }
+        });
+
+        // Submit form đổi mật khẩu
+        document.getElementById('passwordForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (newPassword !== confirmPassword) {
+                alert('Mật khẩu mới và xác nhận không khớp.');
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                alert('Mật khẩu mới phải ít nhất 6 ký tự.');
+                return;
+            }
+
+            try {
+                // Hash mật khẩu hiện tại
+                const hashedCurrentPassword = await hashSHA256(currentPassword);
+
+                // Gọi API verify password
+                const verifyResponse = await fetch(`${API_BASE}/accounts/${maTK}/verify-password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ currentPassword: hashedCurrentPassword })
+                });
+
+                if (!verifyResponse.ok) {
+                    throw new Error('Lỗi xác thực mật khẩu');
+                }
+
+                const verifyResult = await verifyResponse.json();
+                if (!verifyResult.valid) {
+                    alert('Mật khẩu hiện tại không đúng.');
+                    return;
+                }
+
+                // Hash mật khẩu mới
+                const hashedNewPassword = await hashSHA256(newPassword);
+
+                // Cập nhật mật khẩu mới
+                const updateResponse = await fetch(`${API_BASE}/accounts/${maTK}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ matKhau: hashedNewPassword })
+                });
+
+                if (!updateResponse.ok) {
+                    const errorText = await updateResponse.text();
+                    throw new Error(errorText || `HTTP error! status: ${updateResponse.status}`);
+                }
+
+                const result = await updateResponse.json();
+                alert(result.message || 'Đổi mật khẩu thành công');
+                hidePasswordForm();
+            } catch (error) {
+                console.error('Lỗi đổi mật khẩu:', error);
+                alert('Lỗi đổi mật khẩu: ' + error.message);
+            }
+        });
+
+        // Hàm toggle hiện/ẩn mật khẩu
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            const icon = input.nextElementSibling;
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        // Hàm hash SHA256
+        async function hashSHA256(text) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(text);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // Đăng xuất
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            if (confirm('Bạn có chắc chắn muốn thoát khỏi hệ thống?')) {
+                sessionStorage.clear();
+                window.location.href = '../index.html';
+            }
+        });
+
+        // Khởi tạo
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Ẩn cả 2 form ban đầu
+            document.getElementById('edit-form').classList.add('hidden');
+            document.getElementById('password-form').classList.add('hidden');
+
+            await loadUserInfo();
+        });
+    </script>
+</body>
+
+</html>

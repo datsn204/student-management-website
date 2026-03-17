@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang Giảng Viên - Hệ thống Quản Lý Sinh Viên</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/teacher.css">
+</head>
+
+<body>
+    <div class="sidebar">
+        <div class="header">
+            <img src="../pictures/gv.jpg" alt="Avatar">
+            <div class="info">
+                <strong id="user-name">Teacher</strong>
+            </div>
+        </div>
+        <div class="menu">
+            <a href="giangvien.html" class="menu-item active"><i class="fa-solid fa-user"
+                    style="font-size: 25px"></i>Danh sách sinh viên</a>
+            <a href="manage-class.html" class="menu-item"><i class="fa-solid fa-landmark"
+                    style="font-size: 25px"></i>Quản lý lớp học</a>
+            <a href="manage-grades.html" class="menu-item"><i class="fa-solid fa-graduation-cap"
+                    style="font-size: 25px"></i>Quản lý điểm</a>
+            <a href="exam-schedule.html" class="menu-item"><i class="fa-solid fa-bell" style="font-size: 25px"></i>Xem
+                lịch thi</a>
+            <a href="personal-info.html" class="menu-item"><i class="fa-solid fa-circle-user"
+                    style="font-size: 30px"></i>Thông tin cá nhân</a>
+        </div>
+        <div class="bottom">
+            <div class="menu-item logout-btn" id="logout-btn">
+                <i class="fas fa-sign-out-alt"></i><span>Đăng xuất</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="welcome">
+            <h1><i class="fas fa-chalkboard-teacher"></i>Danh sách sinh viên</h1>
+            <div class="filters-container">
+                <div class="filter-group">
+                    <label for="class-select"><i class="fas fa-school"></i> Chọn Lớp:</label>
+                    <select id="class-select" class="filter-select" onchange="onClassChange()">
+                        <option value="">Tất cả lớp</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="subject-select"><i class="fas fa-book"></i> Chọn Môn:</label>
+                    <select id="subject-select" class="filter-select" onchange="onFilterChange()">
+                        <option value="">Tất cả môn</option>
+                    </select>
+                </div>
+            </div>
+            <div class="search-container">
+                <input type="text" id="search-input" class="search-input"
+                    placeholder="Tìm kiếm theo mã SV hoặc họ tên...">
+                <button onclick="searchStudents()" class="action-btn search-btn"><i class="fas fa-search"></i> Tìm
+                    kiếm</button>
+                <button onclick="resetAndLoadStudents()" class="action-btn reset-btn"><i class="fas fa-sync-alt"></i>
+                    Tải lại</button>
+                <button onclick="exportToExcel()" class="action-btn export-btn" id="export-btn" style="display:none;"><i
+                        class="fas fa-file-excel"></i> Export Excel</button>
+            </div>
+            <div class="table-container">
+                <table id="students-table">
+                    <thead>
+                        <tr>
+                            <th>STT</th>
+                            <th>Mã SV</th>
+                            <th>Họ Tên</th>
+                            <th>Ngày Sinh</th>
+                            <th>Giới Tính</th>
+                            <th>Email</th>
+                            <th>SĐT</th>
+                            <th>Mã Lớp</th>
+                            <th>Tên Lớp</th>
+                            <th>Mã Khoa</th>
+                            <th>Tên Khoa</th>
+                        </tr>
+                    </thead>
+                    <tbody id="students-tbody"></tbody>
+                </table>
+            </div>
+            <!-- Phân trang -->
+            <div class="pagination-container" id="pagination-container" style="display: none;">
+                <div class="pagination-controls">
+                    <button onclick="goToPreviousPage()" class="action-btn" id="prev-btn" disabled><i class="fas fa-chevron-left"></i> Trước</button>
+                    <span id="page-info" class="page-info">Trang 1 / 1</span>
+                    <button onclick="goToNextPage()" class="action-btn" id="next-btn" disabled><i class="fas fa-chevron-right"></i> Sau</button>
+                </div>
+            </div>
+            <!-- Loading spinner -->
+            <div class="loading-spinner" id="loading-spinner" style="display: none;">
+                <i class="fas fa-spinner fa-spin"></i> Đang tải...
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        // Kiểm tra vai trò
+        const userRole = sessionStorage.getItem('userRole');
+        const maTK = sessionStorage.getItem('maTK');
+        if (userRole !== 'GiangVien' || !maTK) {
+            window.location.href = '../index.html';
+        }
+
+        // API base URL
+        const API_BASE = 'http://localhost:3000/api';
+
+        let allClasses = [];
+        let currentPage = 1;
+        let totalPages = 1;
+        let totalStudents = 0;
+        let currentLimit = 25; // Giới hạn mặc định
+
+        function formatDate(isoString) {
+            if (!isoString) return '';
+            const date = new Date(isoString);
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+
+        async function loadUserName() {
+            try {
+                const response = await fetch(`${API_BASE}/sinhviengv/info?maTK=${maTK}`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+                document.getElementById('user-name').textContent = data.hoTen || 'Teacher';
+            } catch (error) {
+                console.error('Lỗi load tên user:', error);
+                document.getElementById('user-name').textContent = 'Giảng Viên';
+            }
+        }
+
+        async function loadClassesForFilter() {
+            try {
+                const response = await fetch(`${API_BASE}/sinhviengv/classes?maTK=${maTK}`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                allClasses = await response.json();
+
+                const uniqueClasses = [...new Set(allClasses.map(cls => cls.maLop))].sort();
+                const classSelect = document.getElementById('class-select');
+                classSelect.innerHTML = '<option value="">Tất cả lớp</option>' + uniqueClasses.map(maLop => {
+                    const cls = allClasses.find(c => c.maLop === maLop);
+                    return `<option value="${maLop}">${maLop} - ${cls.tenLop}</option>`;
+                }).join('');
+
+                const urlParams = new URLSearchParams(window.location.search);
+                const classParam = urlParams.get('class');
+                const subjectParam = urlParams.get('subject');
+
+                if (classParam && uniqueClasses.includes(classParam)) {
+                    classSelect.value = classParam;
+                    updateSubjectSelect(); // Cập nhật danh sách môn trước
+                    if (subjectParam) {
+                        const subjectSelect = document.getElementById('subject-select');
+                        if ([...subjectSelect.options].some(opt => opt.value === subjectParam)) {
+                            subjectSelect.value = subjectParam;
+                        }
+                    }
+                    onFilterChange(); // Tải danh sách sinh viên
+                } else {
+                    updateSubjectSelect();
+                    loadStudents(); // Tải mặc định nếu không có tham số
+                }
+            } catch (error) {
+                console.error('Lỗi load classes for filter:', error);
+            }
+        }
+
+        function updateSubjectSelect() {
+            const selectedClass = document.getElementById('class-select').value;
+            const subjectSelect = document.getElementById('subject-select');
+
+            let filteredSubjects = allClasses;
+            if (selectedClass) {
+                filteredSubjects = allClasses.filter(cls => cls.maLop === selectedClass);
+            }
+
+            const uniqueSubjects = [...new Set(filteredSubjects.map(cls => cls.maMH))].sort();
+            subjectSelect.innerHTML = '<option value="">Tất cả môn</option>' + uniqueSubjects.map(maMH => {
+                const sub = filteredSubjects.find(c => c.maMH === maMH);
+                return `<option value="${maMH}">${maMH} - ${sub.tenMH}</option>`;
+            }).join('');
+        }
+
+        function onClassChange() {
+            updateSubjectSelect();
+            currentPage = 1;
+            onFilterChange();
+            toggleExportButton();
+        }
+
+        function showLoading() {
+            document.getElementById('loading-spinner').style.display = 'block';
+            document.getElementById('students-tbody').innerHTML = '';
+            document.getElementById('pagination-container').style.display = 'none';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading-spinner').style.display = 'none';
+        }
+
+        async function loadStudents(query = '') {
+            showLoading();
+            const maLop = document.getElementById('class-select').value;
+            const maMH = document.getElementById('subject-select').value;
+            try {
+                let url = `${API_BASE}/sinhviengv/students?maTK=${maTK}&page=${currentPage}&limit=${currentLimit}`;
+                if (maLop) url += `&maLop=${encodeURIComponent(maLop)}`;
+                if (maMH) url += `&maMH=${encodeURIComponent(maMH)}`;
+                if (query) url += `&_q=${encodeURIComponent(query)}`;
+
+                const response = await fetch(url);
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+                }
+                const result = await response.json();
+
+                if (!Array.isArray(result.data)) throw new Error('Dữ liệu trả về không phải là mảng');
+
+                // Cập nhật metadata
+                totalStudents = result.total || 0;
+                totalPages = result.totalPages || 1;
+                currentPage = result.currentPage || 1;
+
+                const tbody = document.getElementById('students-tbody');
+                if (result.data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="11" class="no-data">Không có sinh viên nào phù hợp với bộ lọc.</td></tr>';
+                    updatePaginationVisibility();
+                    hideLoading();
+                    return;
+                }
+
+                tbody.innerHTML = result.data.map((sv, index) => `
+                    <tr>
+                        <td>${((currentPage - 1) * currentLimit) + index + 1}</td>
+                        <td>${sv.maSV || ''}</td>
+                        <td>${sv.hoTen || ''}</td>
+                        <td>${formatDate(sv.ngaySinh)}</td>
+                        <td>${sv.gioiTinh || ''}</td>
+                        <td>${sv.email || ''}</td>
+                        <td>${sv.sdt || ''}</td>
+                        <td>${sv.maLop || ''}</td>
+                        <td>${sv.tenLop || ''}</td>
+                        <td>${sv.maKhoa || ''}</td>
+                        <td>${sv.tenKhoa || ''}</td>
+                    </tr>
+                `).join('');
+
+                updatePagination();
+                updatePaginationVisibility();
+            } catch (error) {
+                console.error('Lỗi load sinh viên:', error);
+                document.getElementById('students-tbody').innerHTML = '<tr><td colspan="11" class="no-data">Lỗi tải dữ liệu. Vui lòng thử lại.</td></tr>';
+                updatePaginationVisibility();
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function updatePagination() {
+            document.getElementById('page-info').textContent = `Trang ${currentPage} / ${totalPages}`;
+
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            prevBtn.disabled = currentPage <= 1;
+            nextBtn.disabled = currentPage >= totalPages;
+        }
+
+        function updatePaginationVisibility() {
+            const hasData = totalStudents > 0;
+            document.getElementById('pagination-container').style.display = hasData ? 'flex' : 'none';
+        }
+
+        function goToPreviousPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                onFilterChange(); // Reload với page mới
+            }
+        }
+
+        function goToNextPage() {
+            if (currentPage < totalPages) {
+                currentPage++;
+                onFilterChange(); // Reload với page mới
+            }
+        }
+
+        function resetAndLoadStudents() {
+            document.getElementById('class-select').value = '';
+            document.getElementById('subject-select').value = '';
+            document.getElementById('search-input').value = '';
+            updateSubjectSelect();
+            currentPage = 1;
+            loadStudents('');
+            toggleExportButton();
+        }
+
+        function onFilterChange() {
+            const query = document.getElementById('search-input').value;
+            loadStudents(query);
+        }
+
+        function searchStudents() {
+            currentPage = 1; // Reset về trang 1 khi search
+            const query = document.getElementById('search-input').value;
+            loadStudents(query);
+        }
+
+        function toggleExportButton() {
+            const maLop = document.getElementById('class-select').value;
+            const exportBtn = document.getElementById('export-btn');
+            if (maLop) {
+                exportBtn.style.display = 'inline-block';
+            } else {
+                exportBtn.style.display = 'none';
+            }
+        }
+
+        async function fetchStudentsForExport(maLop, maMH = '') {
+            try {
+                let url = `${API_BASE}/sinhviengv/students?maTK=${maTK}&maLop=${encodeURIComponent(maLop)}&export=true`;
+                if (maMH) url += `&maMH=${encodeURIComponent(maMH)}`;
+
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const students = await response.json();
+                return students.map(sv => ({
+                    ...sv,
+                    ngaySinh: formatDate(sv.ngaySinh)
+                }));
+            } catch (error) {
+                console.error('Lỗi fetch dữ liệu export:', error);
+                alert('Lỗi tải dữ liệu để export. Vui lòng thử lại.');
+                return [];
+            }
+        }
+
+        async function exportToExcel() {
+            const maLop = document.getElementById('class-select').value;
+            const maMH = document.getElementById('subject-select').value;
+            if (!maLop) {
+                alert('Vui lòng chọn lớp để export.');
+                return;
+            }
+
+            showLoading(); // Tái sử dụng spinner
+            const students = await fetchStudentsForExport(maLop, maMH);
+            hideLoading();
+            if (students.length === 0) {
+                alert('Không có dữ liệu để export.');
+                return;
+            }
+
+            // Thêm STT
+            const exportData = students.map((sv, index) => ({
+                STT: index + 1,
+                'Mã SV': sv.maSV || '',
+                'Họ Tên': sv.hoTen || '',
+                'Ngày Sinh': sv.ngaySinh,
+                'Giới Tính': sv.gioiTinh || '',
+                Email: sv.email || '',
+                'SĐT': sv.sdt || '',
+                'Mã Lớp': sv.maLop || '',
+                'Tên Lớp': sv.tenLop || '',
+                'Mã Khoa': sv.maKhoa || '',
+                'Tên Khoa': sv.tenKhoa || ''
+            }));
+
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Danh sách sinh viên');
+
+            // Tên file: Danh_sach_sinh_vien_[maLop]_[maMH nếu có].xlsx
+            const subjectPart = maMH ? `_${maMH}` : '';
+            const fileName = `Danh_sach_sinh_vien_${maLop}${subjectPart}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+        }
+
+        const logoutBtn = document.getElementById('logout-btn');
+        logoutBtn.addEventListener('click', () => {
+            if (confirm('Bạn có chắc chắn muốn thoát khỏi hệ thống?')) {
+                sessionStorage.clear();
+                window.location.href = '../index.html';
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadUserName();
+            await loadClassesForFilter();
+            toggleExportButton();
+        });
+    </script>
+</body>
+
+</html>

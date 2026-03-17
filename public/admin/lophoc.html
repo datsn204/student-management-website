@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Lớp học - Hệ thống</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css"> 
+    <link rel="stylesheet" href="../css/giangvien.css">
+    <link rel="stylesheet" href="../css/monhoc.css">
+    <script>localStorage.theme === 'dark' && document.documentElement.setAttribute('data-theme', 'dark');</script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<div class="sidebar" id="sidebar">
+    <div>
+        <div class="header">
+            <img src="../pictures/admin.jpg" alt="">
+            <div class="info">
+                <strong>Admin</strong><br>
+            </div>
+        </div>
+        <div class="menu">
+            <a href="../admin/admin.html" class="menu-item"><i class="fa-solid fa-user"></i><span>Quản lý tài khoản</span></a>
+            <a href="../admin/student.html" class="menu-item"><i class="fas fa-chart-bar"></i><span>Quản lý sinh viên</span></a>
+            <a href="../admin/giangvienadmin.html" class="menu-item"><i class="fa-solid fa-graduation-cap"></i><span>Quản lý giảng viên</span></a>
+            <a href="../admin/khoa.html" class="menu-item"><i class="fa-solid fa-building"></i><span>Quản lý khoa</span></a>
+            <a href="../admin/lophoc.html" class="menu-item active"><i class="fas fa-heart"></i><span>Quản lý lớp học</span></a>
+            <a href="../admin/monhoc.html" class="menu-item"><i class="fas fa-wallet"></i><span>Quản lý môn học</span></a>
+            <a href="../admin/diem.html" class="menu-item"><i class="fa-solid fa-paintbrush"></i><span>Quản lý điểm</span></a>
+            <a href="../admin/phancong.html" class="menu-item"><i class="fas fa-tasks"></i><span>Phân công giảng dạy</span></a>
+            <a href="../admin/lichthi.html" class="menu-item"><i class="fa-solid fa-bell"></i><span>Quản lý lịch thi</span></a>
+            <a href="../admin/phanhoi.html" class="menu-item"><i class="fa-solid fa-comments"></i><span>Quản lý phản 
+                        hồi</span></a>
+        </div>
+    </div>
+    <div class="bottom">
+        <div class="menu-item" id="logout-btn"><i class="fas fa-sign-out-alt"></i><span>Thoát</span></div>
+        <div class="toggle-theme">
+            <i class="fas fa-moon"></i><span>Chế độ</span>
+            <label class="switch">
+                <input type="checkbox" id="theme-toggle">
+            </label>
+        </div>
+        <div class="toggle-sidebar">
+            <i class="fas fa-angle-double-left" id="collapse-icon"></i><span></span>
+        </div>
+    </div>
+</div>
+
+<div class="main-content">
+    <div class="text-center"> 
+        <h1>Quản lý Lớp học 🧑‍🎓</h1>
+    </div>
+
+    <!-- Dashboard Thống kê -->
+    <div class="dashboard-section">
+        <div class="stats-cards">
+            <div class="stat-card stat-card-purple">
+                <div class="stat-card-content">
+                    <div class="stat-info">
+                        <p class="stat-label">Tổng số lớp</p>
+                        <h2 id="total-classes" class="stat-value">0</h2>
+                    </div>
+                    <i class="fas fa-school stat-icon"></i>
+                </div>
+            </div>
+
+            <div class="stat-card stat-card-pink">
+                <div class="stat-card-content">
+                    <div class="stat-info">
+                        <p class="stat-label">Tổng sinh viên</p>
+                        <h2 id="total-students" class="stat-value">0</h2>
+                    </div>
+                    <i class="fas fa-user-graduate stat-icon"></i>
+                </div>
+            </div>
+
+            <div class="stat-card stat-card-blue">
+                <div class="stat-card-content">
+                    <div class="stat-info">
+                        <p class="stat-label">Lớp có SV nhiều nhất</p>
+                        <h2 id="max-class" class="stat-value stat-value-small">-</h2>
+                    </div>
+                    <i class="fas fa-trophy stat-icon"></i>
+                </div>
+            </div>
+
+            <div class="stat-card stat-card-orange">
+                <div class="stat-card-content">
+                    <div class="stat-info">
+                        <p class="stat-label">TB SV/Lớp</p>
+                        <h2 id="avg-students" class="stat-value">0</h2>
+                    </div>
+                    <i class="fas fa-chart-line stat-icon"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Biểu đồ -->
+        <div class="charts-container">
+            <div class="chart-card">
+                <h3><i class="fas fa-chart-bar"></i> Phân bố lớp học theo khoa</h3>
+                <canvas id="chart-khoa"></canvas>
+            </div>
+
+            <div class="chart-card">
+                <h3><i class="fas fa-chart-pie"></i> Phân bố sinh viên theo lớp</h3>
+                <canvas id="chart-sinhvien"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="control-bar">
+        <button id="add-lophoc-btn" class="primary-btn"><i class="fas fa-plus"></i> Thêm Lớp học</button>
+        <button id="import-btn" class="primary-btn"><i class="fas fa-upload"></i> Import từ File</button>
+        <input type="file" id="import-file" accept=".xlsx,.csv" style="display: none;">
+
+        <div class="search-bar">
+            <input type="text" id="search-input" placeholder="Tìm kiếm theo Mã Lớp, Tên Lớp, Khoa...">
+            <button id="search-btn"><i class="fas fa-search"></i></button>
+        </div>
+
+        <button id="export-btn" class="secondary-btn"><i class="fas fa-download"></i> Export ra Excel</button>
+
+        <div class="filter-section">
+            <select id="filter-maKhoa" class="filter-select">
+                <option value="">Tất cả Khoa</option>
+            </select>
+            <button id="apply-filter" class="primary-btn"><i class="fas fa-filter"></i> Áp dụng</button>
+            <button id="clear-filter" class="secondary-btn"><i class="fas fa-times"></i> Xóa lọc</button>
+        </div>
+    </div>
+
+    <!-- Bulk Actions Section -->
+    <div class="bulk-actions">
+        <div id="selected-count">Không có mục nào được chọn</div>
+        <div>
+            <button id="bulk-delete-btn" class="bulk-btn bulk-delete" disabled><i class="fas fa-trash"></i> Xóa đã chọn</button>
+            <button id="bulk-export-btn" class="bulk-btn bulk-export" disabled><i class="fas fa-download"></i> Xuất đã chọn</button>
+        </div>
+    </div>
+        
+    <div class="table-card">
+        <h2 class="text-center">Danh sách Lớp học</h2> 
+        <table id="giangvien-table" class="display">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="select-all"></th>
+                    <th>Mã Lớp</th>
+                    <th>Tên Lớp</th>
+                    <th>Khoa</th>
+                    <th>Số SV</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+
+    <div id="loading-spinner" class="spinner">
+        <i class="fas fa-spinner fa-spin"></i>
+        <p>Đang tải...</p>
+    </div>
+</div>
+
+<!-- Modal Thêm/Sửa Lớp học -->
+<div id="lophoc-modal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <h2 id="modal-title">Thêm Lớp học</h2>
+        <form id="lophoc-form">
+            <input type="hidden" id="lophoc-maLop-hidden"> 
+            
+            <div class="form-group">
+                <label for="maLop"><i class="fas fa-hashtag"></i> Mã Lớp:</label>
+                <input type="text" id="maLop" required>
+            </div>
+            <div class="form-group">
+                <label for="tenLop"><i class="fas fa-school"></i> Tên Lớp:</label>
+                <input type="text" id="tenLop" required>
+            </div>
+            <div class="form-group">
+                <label for="maKhoa"><i class="fas fa-building"></i> Chọn Khoa:</label>
+                <select id="maKhoa" required>
+                    <option value="">-- Chọn Khoa --</option>
+                </select>
+            </div>
+            
+            <button type="submit" id="submit-btn">Thêm</button> 
+        </form>
+    </div>
+</div>
+
+<!-- Modal Xem Chi tiết Lớp học -->
+<div id="detail-modal" class="modal">
+    <div class="modal-content phancong-modal-content">
+        <span class="close-btn-detail">&times;</span>
+        <h2>Chi tiết Lớp học</h2>
+        
+        <div class="detail-section">
+            <h3 class="section-title"><i class="fas fa-info-circle"></i> Thông tin cơ bản</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <strong>Mã lớp:</strong> <span id="detail-maLop">-</span>
+                </div>
+                <div class="info-item">
+                    <strong>Tên lớp:</strong> <span id="detail-tenLop">-</span>
+                </div>
+                <div class="info-item">
+                    <strong>Khoa:</strong> <span id="detail-tenKhoa">-</span>
+                </div>
+                <div class="info-item">
+                    <strong>Sĩ số:</strong> <span id="detail-siSo">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <h3 class="section-title"><i class="fas fa-chart-line"></i> Thống kê</h3>
+            <div class="stats-grid">
+                <div class="mini-stat-card mini-stat-blue">
+                    <div class="mini-stat-value" id="detail-studentCount">0</div>
+                    <div class="mini-stat-label">Sinh viên</div>
+                </div>
+                <div class="mini-stat-card mini-stat-orange">
+                    <div class="mini-stat-value" id="detail-avgScore">-</div>
+                    <div class="mini-stat-label">Điểm TB lớp</div>
+                </div>
+                <div class="mini-stat-card mini-stat-green">
+                    <div class="mini-stat-value" id="detail-courseCount">0</div>
+                    <div class="mini-stat-label">Môn học</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <h3 class="section-title"><i class="fas fa-user-graduate"></i> Danh sách sinh viên</h3>
+            <div class="table-responsive">
+                <table id="detail-classes-table">
+                    <thead>
+                        <tr>
+                            <th>Mã SV</th>
+                            <th>Họ tên</th>
+                            <th>Email</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody id="detail-students-tbody">
+                        <tr>
+                            <td colspan="4" class="no-data">Chưa có dữ liệu</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <h3 class="section-title"><i class="fas fa-book"></i> Danh sách môn học</h3>
+            <div class="table-responsive">
+                <table id="detail-classes-table">
+                    <thead>
+                        <tr>
+                            <th>Mã môn</th>
+                            <th>Tên môn</th>
+                            <th>Giảng viên</th>
+                            <th>Học kỳ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="detail-courses-tbody">
+                        <tr>
+                            <td colspan="4" class="no-data">Chưa có dữ liệu</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../js/script.js"></script> 
+<script>
+$(document).ready(function() {
+    const API_URL = '/api/lophocs';
+    const KHOA_URL = '/api/khoas';
+    let dataTable;
+    let lophocsData = [];
+    let currentFilters = {};
+    let isUploading = false;
+    let chartKhoa = null;
+    let chartSinhVien = null;
+
+    // DOM Elements
+    const lophocModal = document.getElementById('lophoc-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const lophocForm = document.getElementById('lophoc-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const addBtn = document.getElementById('add-lophoc-btn');
+    const closeBtn = document.querySelector('.close-btn');
+    const maLopHiddenInput = document.getElementById('lophoc-maLop-hidden');
+    const maLopInput = document.getElementById('maLop');
+    const tenLopInput = document.getElementById('tenLop');
+    const maKhoaInput = document.getElementById('maKhoa');
+    const searchInput = document.getElementById('search-input');
+    const searchBtn = document.getElementById('search-btn');
+    const filterMaKhoa = document.getElementById('filter-maKhoa');
+    const applyFilterBtn = document.getElementById('apply-filter');
+    const clearFilterBtn = document.getElementById('clear-filter');
+    const importBtn = document.getElementById('import-btn');
+    const importFileInput = document.getElementById('import-file');
+    const exportBtn = document.getElementById('export-btn');
+    const logoutBtn = document.getElementById('logout-btn');
+    const detailModal = document.getElementById('detail-modal');
+    const closeDetailBtn = document.querySelector('.close-btn-detail');
+
+    // Helper Functions
+    function showLoading() {
+        document.getElementById('loading-spinner').style.display = 'flex';
+    }
+
+    function hideLoading() {
+        document.getElementById('loading-spinner').style.display = 'none';
+    }
+
+    function getStatusBadge(status) {
+        const badges = {
+            'active': '<span style="color: #16a34a; background: rgba(22, 163, 74, 0.1); padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600;">Đang học</span>',
+            'graduated': '<span style="color: #0077b6; background: rgba(0, 119, 182, 0.1); padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600;">Tốt nghiệp</span>',
+            'suspended': '<span style="color: #f59e0b; background: rgba(245, 158, 11, 0.1); padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600;">Tạm ngưng</span>'
+        };
+        return badges[status] || badges['active'];
+    }
+
+    function updateBulkActions() {
+        const selectedCheckboxes = $('.select-row:checked');
+        const count = selectedCheckboxes.length;
+        const totalRows = $('.select-row').length;
+
+        $('#selected-count').text(count === 0 ? 'Không có mục nào được chọn' : `${count} mục được chọn (trong ${totalRows})`);
+
+        const bulkDiv = $('.bulk-actions');
+        const bulkButtons = $('#bulk-delete-btn, #bulk-export-btn');
+
+        if (count > 0) {
+            bulkDiv.css('display', 'flex');
+            bulkButtons.prop('disabled', false);
+        } else {
+            bulkDiv.css('display', 'none');
+            bulkButtons.prop('disabled', true);
+        }
+    }
+
+    // Load Dashboard Stats
+    async function loadDashboardStats() {
+        try {
+            const response = await fetch(`${API_URL}/stats`);
+            if (response.ok) {
+                const stats = await response.json();
+                document.getElementById('total-classes').textContent = stats.totalClasses || 0;
+                document.getElementById('total-students').textContent = stats.totalStudents || 0;
+                document.getElementById('max-class').textContent = stats.maxClass || '-';
+                document.getElementById('avg-students').textContent = stats.avgStudents || 0;
+                
+                renderKhoaChart(stats.byKhoa);
+                renderSinhVienChart(stats.bySinhVien);
+            }
+        } catch (error) {
+            console.error('Lỗi tải thống kê:', error);
+        }
+    }
+
+    function renderKhoaChart(data) {
+        const ctx = document.getElementById('chart-khoa').getContext('2d');
+        if (chartKhoa) chartKhoa.destroy();
+        
+        chartKhoa = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.map(item => item.tenKhoa),
+                datasets: [{
+                    label: 'Số lớp học',
+                    data: data.map(item => item.soLuong),
+                    backgroundColor: [
+                        'rgba(102, 126, 234, 0.8)',
+                        'rgba(240, 147, 251, 0.8)',
+                        'rgba(79, 172, 254, 0.8)',
+                        'rgba(250, 112, 154, 0.8)',
+                        'rgba(254, 225, 64, 0.8)'
+                    ],
+                    borderWidth: 0,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    }
+
+    function renderSinhVienChart(data) {
+        const ctx = document.getElementById('chart-sinhvien').getContext('2d');
+        if (chartSinhVien) chartSinhVien.destroy();
+        
+        chartSinhVien = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: data.map(item => item.tenLop),
+                datasets: [{
+                    data: data.map(item => item.soSV),
+                    backgroundColor: [
+                        'rgba(102, 126, 234, 0.8)',
+                        'rgba(240, 147, 251, 0.8)',
+                        'rgba(79, 172, 254, 0.8)',
+                        'rgba(250, 112, 154, 0.8)',
+                        'rgba(254, 225, 64, 0.8)'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+    }
+
+    // Load Khoa for Filter and Modal
+    async function loadKhoaForFilter() {
+        try {
+            const response = await fetch(KHOA_URL);
+            if (!response.ok) throw new Error('Lỗi tải khoa');
+            const result = await response.json();
+            const khoaData = result.data || result;
+            
+            filterMaKhoa.innerHTML = '<option value="">Tất cả Khoa</option>';
+            khoaData.forEach(khoa => {
+                const option = document.createElement('option');
+                option.value = khoa.maKhoa;
+                option.textContent = `${khoa.maKhoa} - ${khoa.tenKhoa}`;
+                filterMaKhoa.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Lỗi tải khoa:', error);
+        }
+    }
+
+    async function loadKhoaForModal() {
+        try {
+            const response = await fetch(KHOA_URL);
+            if (!response.ok) throw new Error('Lỗi tải khoa');
+            const result = await response.json();
+            const khoaData = result.data || result;
+            
+            maKhoaInput.innerHTML = '<option value="">-- Chọn Khoa --</option>';
+            khoaData.forEach(khoa => {
+                const option = document.createElement('option');
+                option.value = khoa.maKhoa;
+                option.textContent = `${khoa.maKhoa} - ${khoa.tenKhoa}`;
+                maKhoaInput.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Lỗi tải khoa modal:', error);
+        }
+    }
+
+    // Fetch LopHocs
+    async function fetchLopHocs(filters = {}) {
+        showLoading();
+        const params = new URLSearchParams(filters);
+
+        try {
+            const response = await fetch(`${API_URL}?${params}`);
+            if (!response.ok) throw new Error('Lỗi tải dữ liệu');
+            const result = await response.json();
+            lophocsData = result.data || result;
+
+            if ($.fn.DataTable.isDataTable('#giangvien-table')) {
+                dataTable.destroy();
+            }
+
+            const tbody = $('#giangvien-table tbody');
+            tbody.empty();
+
+            lophocsData.forEach(row => {
+                const tr = $('<tr>');
+                tr.append(`<td><input type="checkbox" class="select-row" value="${row.maLop}"></td>`);
+                tr.append(`<td><strong>${row.maLop}</strong></td>`);
+                tr.append(`<td>${row.tenLop}</td>`);
+                tr.append(`<td>${row.tenKhoa || 'N/A'}</td>`);
+                tr.append(`<td>${row.soSinhVien || 0}</td>`);
+
+                const actionTd = $('<td class="action-buttons">');
+                actionTd.append(`<button onclick="viewLopHocDetails('${row.maLop}')" class="action-btn view-phancong-btn" title="Xem chi tiết"><i class="fas fa-eye"></i></button>`);
+                actionTd.append(`<button onclick="handleEdit('${row.maLop}')" class="action-btn edit-btn" title="Sửa"><i class="fas fa-edit"></i></button>`);
+                actionTd.append(`<button onclick="handleDelete('${row.maLop}')" class="action-btn delete-btn" title="Xóa"><i class="fas fa-trash"></i></button>`);
+                tr.append(actionTd);
+                tbody.append(tr);
+            });
+
+            dataTable = $('#giangvien-table').DataTable({
+                pageLength: 10,
+                lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Tất cả"]],
+                language: {
+                    url: "https://cdn.datatables.net/plug-ins/1.13.7/i18n/vi.json"
+                },
+                searching: false,
+                info: false,
+                paging: true,
+                ordering: true,
+                columnDefs: [
+                    { orderable: false, targets: [0, 5] }
+                ]
+            });
+
+            currentFilters = filters;
+            updateBulkActions();
+        } catch (error) {
+            console.error('Lỗi tải danh sách lớp học:', error);
+            alert('Lỗi: ' + error.message);
+        } finally {
+            hideLoading();
+        }
+    }
+
+    // View Details
+    window.viewLopHocDetails = async function(maLop) {
+        try {
+            showLoading();
+            const response = await fetch(`${API_URL}/${maLop}/details`);
+            if (!response.ok) throw new Error('Không thể tải chi tiết');
+            
+            const data = await response.json();
+            
+            document.getElementById('detail-maLop').textContent = data.info.maLop;
+            document.getElementById('detail-tenLop').textContent = data.info.tenLop;
+            document.getElementById('detail-tenKhoa').textContent = `${data.info.maKhoa} - ${data.info.tenKhoa}`;
+            document.getElementById('detail-siSo').textContent = data.studentCount;
+            
+            document.getElementById('detail-studentCount').textContent = data.studentCount;
+            document.getElementById('detail-avgScore').textContent = data.avgScore || 'N/A';
+            document.getElementById('detail-courseCount').textContent = data.courses.length;
+            
+            const studentsTbody = document.getElementById('detail-students-tbody');
+            if (data.students.length > 0) {
+                studentsTbody.innerHTML = data.students.map(sv => `
+                    <tr>
+                        <td>${sv.maSV}</td>
+                        <td>${sv.hoTen}</td>
+                        <td>${sv.email || '-'}</td>
+                        <td>${getStatusBadge(sv.trangThai)}</td>
+                    </tr>
+                `).join('');
+            } else {
+                studentsTbody.innerHTML = '<tr><td colspan="4" class="no-data">Chưa có sinh viên</td></tr>';
+            }
+            
+            const coursesTbody = document.getElementById('detail-courses-tbody');
+            if (data.courses.length > 0) {
+                coursesTbody.innerHTML = data.courses.map(mh => `
+                    <tr>
+                        <td>${mh.maMH}</td>
+                        <td>${mh.tenMH}</td>
+                        <td>${mh.tenGV || 'Chưa phân công'}</td>
+                        <td>${mh.hocKy || '-'}</td>
+                    </tr>
+                `).join('');
+            } else {
+                coursesTbody.innerHTML = '<tr><td colspan="4" class="no-data">Chưa có môn học</td></tr>';
+            }
+            
+            detailModal.style.display = 'flex';
+            hideLoading();
+        } catch (error) {
+            console.error('Lỗi tải chi tiết:', error);
+            alert('Không thể tải chi tiết lớp học');
+            hideLoading();
+        }
+    };
+
+    // Event Listeners
+    $('#select-all').on('change', function() {
+        $('.select-row').prop('checked', this.checked);
+        updateBulkActions();
+    });
+
+    $(document).on('change', '.select-row', function() {
+        const totalCheckboxes = $('.select-row').length;
+        const checkedCheckboxes = $('.select-row:checked').length;
+        $('#select-all').prop('checked', totalCheckboxes > 0 && checkedCheckboxes === totalCheckboxes);
+        updateBulkActions();
+    });
+
+    $('#bulk-delete-btn').on('click', async function() {
+        const selected = $('.select-row:checked').map(function() { return $(this).val(); }).get();
+        if (selected.length === 0) return;
+
+        if (!confirm(`Bạn có chắc chắn muốn xóa ${selected.length} lớp học đã chọn?`)) return;
+
+        try {
+            showLoading();
+            let errorCount = 0;
+            for (let maLop of selected) {
+                const response = await fetch(`${API_URL}/${maLop}`, { method: 'DELETE' });
+                if (!response.ok) errorCount++;
+            }
+            if (errorCount > 0) {
+                alert(`Xóa thành công ${selected.length - errorCount}/${selected.length} lớp. ${errorCount} lớp không thể xóa vì đang có sinh viên.`);
+            } else {
+                alert('Xóa thành công!');
+            }
+            await fetchLopHocs(currentFilters);
+            await loadDashboardStats();
+        } catch (error) {
+            console.error('Lỗi khi xóa bulk:', error);
+            alert(`Thao tác xóa thất bại: ${error.message}`);
+        } finally {
+            hideLoading();
+        }
+    });
+
+    $('#bulk-export-btn').on('click', function() {
+        const selected = $('.select-row:checked').map(function() { return $(this).val(); }).get();
+        if (selected.length === 0) return;
+        
+        const selectedData = lophocsData.filter(l => selected.includes(l.maLop));
+        exportToExcel(selectedData, 'lophoc_da_chon');
+    });
+
+    function exportToExcel(data, filename) {
+        const wsData = data.map(row => ({
+            'Mã Lớp': row.maLop,
+            'Tên Lớp': row.tenLop,
+            'Mã Khoa': row.maKhoa,
+            'Tên Khoa': row.tenKhoa || '',
+            'Số Sinh viên': row.soSinhVien || 0
+        }));
+        
+        const ws = XLSX.utils.json_to_sheet(wsData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Lớp học');
+        XLSX.writeFile(wb, `${filename}_${new Date().toISOString().split('T')[0]}.xlsx`);
+    }
+
+    applyFilterBtn.addEventListener('click', () => {
+        const newFilters = {};
+        if (filterMaKhoa.value) newFilters.maKhoa = filterMaKhoa.value;
+        fetchLopHocs(newFilters);
+    });
+
+    clearFilterBtn.addEventListener('click', () => {
+        filterMaKhoa.value = '';
+        fetchLopHocs({});
+    });
+
+    searchBtn.addEventListener('click', () => {
+        const query = searchInput.value.trim();
+        const newFilters = {};
+        if (query) newFilters._q = query;
+        fetchLopHocs(newFilters);
+    });
+
+    searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') searchBtn.click();
+    });
+
+    addBtn.addEventListener('click', async () => {
+        await loadKhoaForModal();
+        modalTitle.textContent = 'Thêm Lớp học mới';
+        submitBtn.textContent = 'Thêm';
+        maLopHiddenInput.value = '';
+        maLopInput.disabled = false;
+        lophocForm.reset();
+        lophocModal.style.display = 'flex';
+    });
+
+    closeBtn.addEventListener('click', () => {
+        lophocModal.style.display = 'none';
+    });
+
+    closeDetailBtn.addEventListener('click', () => {
+        detailModal.style.display = 'none';
+    });
+
+    lophocModal.addEventListener('click', (e) => {
+        if (e.target === lophocModal) lophocModal.style.display = 'none';
+    });
+
+    detailModal.addEventListener('click', (e) => {
+        if (e.target === detailModal) detailModal.style.display = 'none';
+    });
+
+    lophocForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const maLop_update_target = maLopHiddenInput.value;
+
+        const lophoc = {
+            maLop: maLopInput.value,
+            tenLop: tenLopInput.value,
+            maKhoa: maKhoaInput.value,
+        };
+
+        try {
+            let response;
+            let method = maLop_update_target ? 'PUT' : 'POST';
+            let url = maLop_update_target ? `${API_URL}/${maLop_update_target}` : API_URL;
+
+            response = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(lophoc)
+            });
+
+            if (response.ok) {
+                const successMsg = maLop_update_target ? 'Cập nhật lớp học thành công!' : 'Thêm lớp học thành công!';
+                alert(successMsg);
+                lophocModal.style.display = 'none';
+            } else {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Thao tác thất bại');
+            }
+
+            lophocForm.reset();
+            await fetchLopHocs();
+            await loadDashboardStats();
+        } catch (error) {
+            console.error('Lỗi khi thêm/sửa:', error);
+            alert(`Thao tác thất bại: ${error.message}`);
+        }
+    });
+
+    window.handleEdit = async function(maLop) {
+        await loadKhoaForModal();
+        const lophoc = lophocsData.find(s => s.maLop === maLop);
+        if (lophoc) {
+            maLopHiddenInput.value = lophoc.maLop; 
+            maLopInput.value = lophoc.maLop;
+            maLopInput.disabled = true;
+            tenLopInput.value = lophoc.tenLop;
+            maKhoaInput.value = lophoc.maKhoa;
+            
+            modalTitle.textContent = 'Cập nhật Lớp học';
+            submitBtn.textContent = 'Lưu Thay Đổi';
+            lophocModal.style.display = 'flex';
+        }
+    };
+
+    window.handleDelete = async function(maLop) {
+        if (confirm(`Bạn có chắc chắn muốn xóa lớp học có Mã Lớp: ${maLop} không? Thao tác này có thể bị lỗi nếu lớp đang có Sinh viên.`)) {
+            try {
+                const response = await fetch(`${API_URL}/${maLop}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    alert('Xóa lớp học thành công!');
+                    await fetchLopHocs();
+                    await loadDashboardStats();
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Xóa thất bại');
+                }
+            } catch (error) {
+                console.error('Lỗi khi xóa:', error);
+                alert(`Thao tác xóa thất bại: ${error.message}`);
+            }
+        }
+    };
+
+    // Import from Excel
+    importFileInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file || isUploading) return;
+
+        isUploading = true;
+        importBtn.disabled = true;
+        importBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang upload...';
+
+        try {
+            showLoading();
+            const workbook = XLSX.read(await file.arrayBuffer(), { type: 'array' });
+            const sheetName = workbook.SheetNames[0];
+            const sheet = workbook.Sheets[sheetName];
+            const data = XLSX.utils.sheet_to_json(sheet);
+
+            if (data.length === 0) {
+                alert('File không có dữ liệu!');
+                e.target.value = '';
+                return;
+            }
+
+            let successCount = 0;
+            let errorRows = [];
+
+            for (let i = 0; i < data.length; i++) {
+                const row = data[i];
+                const maLop = row['Mã Lớp'] || row['maLop'];
+                const tenLop = row['Tên Lớp'] || row['tenLop'];
+                const maKhoa = row['Mã Khoa'] || row['maKhoa'];
+
+                if (!maLop || !tenLop || !maKhoa) {
+                    errorRows.push({ row: i + 2, error: 'Thiếu thông tin bắt buộc' });
+                    continue;
+                }
+
+                try {
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ maLop, tenLop, maKhoa })
+                    });
+
+                    if (response.ok) {
+                        successCount++;
+                    } else {
+                        const errorData = await response.json();
+                        errorRows.push({ row: i + 2, error: errorData.message });
+                    }
+                } catch (err) {
+                    errorRows.push({ row: i + 2, error: err.message });
+                }
+            }
+
+            let message = `Import thành công ${successCount}/${data.length} dòng.`;
+            if (errorRows.length > 0) {
+                message += `\n\nLỗi ở các dòng:\n${errorRows.slice(0, 5).map(e => `Dòng ${e.row}: ${e.error}`).join('\n')}`;
+                if (errorRows.length > 5) {
+                    message += `\n... và ${errorRows.length - 5} lỗi khác`;
+                }
+            }
+            alert(message);
+
+            e.target.value = '';
+            await fetchLopHocs(currentFilters);
+            await loadDashboardStats();
+        } catch (error) {
+            console.error('Lỗi import:', error);
+            alert(`Import thất bại: ${error.message}`);
+            e.target.value = '';
+        } finally {
+            isUploading = false;
+            importBtn.disabled = false;
+            importBtn.innerHTML = '<i class="fas fa-upload"></i> Import từ File';
+            hideLoading();
+        }
+    });
+
+    exportBtn.addEventListener('click', async () => {
+        showLoading();
+        try {
+            const wsData = lophocsData.map(row => ({
+                'Mã Lớp': row.maLop,
+                'Tên Lớp': row.tenLop,
+                'Mã Khoa': row.maKhoa,
+                'Tên Khoa': row.tenKhoa || '',
+                'Số Sinh viên': row.soSinhVien || 0
+            }));
+
+            const ws = XLSX.utils.json_to_sheet(wsData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Danh sách lớp học');
+
+            XLSX.writeFile(wb, `danh_sach_lop_hoc_${new Date().toISOString().split('T')[0]}.xlsx`);
+            hideLoading();
+        } catch (error) {
+            console.error('Lỗi export:', error);
+            alert(`Export thất bại: ${error.message}`);
+            hideLoading();
+        }
+    });
+
+    importBtn.addEventListener('click', () => {
+        importFileInput.click();
+    });
+
+    logoutBtn.addEventListener('click', () => {
+        if (confirm('Bạn có chắc chắn muốn thoát khỏi hệ thống?')) {
+            sessionStorage.clear();
+            window.location.href = '../index.html';
+        }
+    });
+
+    loadKhoaForFilter();
+    loadDashboardStats();
+    fetchLopHocs({});
+});
+</script>
+</body>
+</html>

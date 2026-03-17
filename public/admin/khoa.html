@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Khoa - Hệ thống</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/giangvien.css">
+    <link rel="stylesheet" href="../css/monhoc.css">
+    <script>localStorage.theme === 'dark' && document.documentElement.setAttribute('data-theme', 'dark');</script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+
+<body>
+
+    <div class="sidebar" id="sidebar">
+        <div>
+            <div class="header">
+                <img src="../pictures/admin.jpg" alt="">
+                <div class="info">
+                    <strong>Admin</strong><br>
+                </div>
+            </div>
+            <div class="menu">
+                <a href="../admin/admin.html" class="menu-item"><i class="fa-solid fa-user"></i><span>Quản lý tài
+                        khoản</span></a>
+                <a href="../admin/student.html" class="menu-item"><i class="fas fa-chart-bar"></i><span>Quản lý sinh
+                        viên</span></a>
+                <a href="../admin/giangvienadmin.html" class="menu-item"><i
+                        class="fa-solid fa-graduation-cap"></i><span>Quản lý giảng viên</span></a>
+                <a href="../admin/khoa.html" class="menu-item active"><i class="fa-solid fa-building"></i><span>Quản lý
+                        khoa</span></a>
+                <a href="../admin/lophoc.html" class="menu-item"><i class="fas fa-heart"></i><span>Quản lý lớp
+                        học</span></a>
+                <a href="../admin/monhoc.html" class="menu-item"><i class="fas fa-wallet"></i><span>Quản lý môn
+                        học</span></a>
+                <a href="../admin/diem.html" class="menu-item"><i class="fa-solid fa-paintbrush"></i><span>Quản lý
+                        điểm</span></a>
+                <a href="../admin/phancong.html" class="menu-item"><i class="fas fa-tasks"></i><span>Phân công giảng
+                        dạy</span></a>
+                <a href="../admin/lichthi.html" class="menu-item"><i class="fa-solid fa-bell"></i><span>Quản lý lịch
+                        thi</span></a>
+                <a href="../admin/phanhoi.html" class="menu-item"><i class="fa-solid fa-comments"></i><span>Quản lý phản 
+                        hồi</span></a>
+            </div>
+        </div>
+        <div class="bottom">
+            <div class="menu-item" id="logout-btn"><i class="fas fa-sign-out-alt"></i><span>Thoát</span></div>
+            <div class="toggle-theme">
+                <i class="fas fa-moon"></i><span>Chế độ</span>
+                <label class="switch">
+                    <input type="checkbox" id="theme-toggle">
+                </label>
+            </div>
+            <div class="toggle-sidebar">
+                <i class="fas fa-angle-double-left" id="collapse-icon"></i><span></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="text-center">
+            <h1>Quản lý Khoa 🏛️</h1>
+        </div>
+
+        <!-- Dashboard Thống kê -->
+        <div class="dashboard-section">
+            <div class="stats-cards">
+                <div class="stat-card stat-card-purple">
+                    <div class="stat-card-content">
+                        <div class="stat-info">
+                            <p class="stat-label">Tổng số khoa</p>
+                            <h2 id="total-khoa" class="stat-value">0</h2>
+                        </div>
+                        <i class="fas fa-building stat-icon"></i>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-card-pink">
+                    <div class="stat-card-content">
+                        <div class="stat-info">
+                            <p class="stat-label">Tổng sinh viên</p>
+                            <h2 id="total-students" class="stat-value">0</h2>
+                        </div>
+                        <i class="fas fa-user-graduate stat-icon"></i>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-card-blue">
+                    <div class="stat-card-content">
+                        <div class="stat-info">
+                            <p class="stat-label">Tổng giảng viên</p>
+                            <h2 id="total-lecturers" class="stat-value">0</h2>
+                        </div>
+                        <i class="fas fa-chalkboard-teacher stat-icon"></i>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-card-orange">
+                    <div class="stat-card-content">
+                        <div class="stat-info">
+                            <p class="stat-label">Tổng môn học</p>
+                            <h2 id="total-courses" class="stat-value">0</h2>
+                        </div>
+                        <i class="fas fa-book stat-icon"></i>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-card-green">
+                    <div class="stat-card-content">
+                        <div class="stat-info">
+                            <p class="stat-label">Tổng lớp học</p>
+                            <h2 id="total-classes" class="stat-value">0</h2>
+                        </div>
+                        <i class="fas fa-door-open stat-icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-bar">
+            <button id="add-khoa-btn" class="primary-btn"><i class="fas fa-plus"></i> Thêm Khoa</button>
+            <button id="import-btn" class="primary-btn"><i class="fas fa-upload"></i> Import từ File</button>
+            <input type="file" id="import-file" accept=".xlsx,.csv" style="display: none;">
+
+            <div class="search-bar">
+                <input type="text" id="search-input" placeholder="Tìm kiếm theo Mã Khoa, Tên Khoa...">
+                <button id="search-btn"><i class="fas fa-search"></i></button>
+            </div>
+
+            <button id="export-btn" class="secondary-btn"><i class="fas fa-download"></i> Export ra Excel</button>
+        </div>
+
+        <!-- Bulk Actions Section -->
+        <div class="bulk-actions">
+            <div id="selected-count">Không có mục nào được chọn</div>
+            <div>
+                <button id="bulk-delete-btn" class="bulk-btn bulk-delete" disabled><i class="fas fa-trash"></i> Xóa đã
+                    chọn</button>
+                <button id="bulk-export-btn" class="bulk-btn bulk-export" disabled><i class="fas fa-download"></i> Xuất
+                    đã chọn</button>
+            </div>
+        </div>
+
+        <div class="table-card">
+            <h2 class="text-center">Danh sách Khoa</h2>
+            <table id="giangvien-table" class="display">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="select-all"></th>
+                        <th>Mã Khoa</th>
+                        <th>Tên Khoa</th>
+                        <th>Số SV</th>
+                        <th>Số GV</th>
+                        <th>Số Môn học</th>
+                        <th>Số Lớp</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="loading-spinner" class="spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Đang tải...</p>
+        </div>
+    </div>
+
+    <!-- Modal Thêm/Sửa Khoa -->
+    <div id="khoa-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2 id="modal-title">Thêm Khoa</h2>
+            <form id="khoa-form">
+                <input type="hidden" id="khoa-maKhoa-hidden">
+
+                <div class="form-group">
+                    <label for="maKhoa"><i class="fas fa-hashtag"></i> Mã Khoa:</label>
+                    <input type="text" id="maKhoa" required>
+                </div>
+                <div class="form-group">
+                    <label for="tenKhoa"><i class="fas fa-building"></i> Tên Khoa:</label>
+                    <input type="text" id="tenKhoa" required>
+                </div>
+
+                <button type="submit" id="submit-btn">Thêm</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Xem Chi tiết Khoa -->
+    <div id="detail-modal" class="modal">
+        <div class="modal-content phancong-modal-content">
+            <span class="close-btn-detail">&times;</span>
+            <h2>Chi tiết Khoa</h2>
+
+            <div class="detail-section">
+                <h3 class="section-title"><i class="fas fa-info-circle"></i> Thông tin cơ bản</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <strong>Mã khoa:</strong> <span id="detail-maKhoa">-</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Tên khoa:</strong> <span id="detail-tenKhoa">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <h3 class="section-title"><i class="fas fa-chart-line"></i> Thống kê</h3>
+                <div class="stats-grid">
+                    <div class="mini-stat-card mini-stat-blue">
+                        <div class="mini-stat-value" id="detail-studentCount">0</div>
+                        <div class="mini-stat-label">Sinh viên</div>
+                    </div>
+                    <div class="mini-stat-card mini-stat-orange">
+                        <div class="mini-stat-value" id="detail-lecturerCount">0</div>
+                        <div class="mini-stat-label">Giảng viên</div>
+                    </div>
+                    <div class="mini-stat-card mini-stat-green">
+                        <div class="mini-stat-value" id="detail-courseCount">0</div>
+                        <div class="mini-stat-label">Môn học</div>
+                    </div>
+                    <div class="mini-stat-card mini-stat-purple">
+                        <div class="mini-stat-value" id="detail-classCount">0</div>
+                        <div class="mini-stat-label">Lớp học</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <h3 class="section-title"><i class="fas fa-chalkboard-teacher"></i> Danh sách giảng viên</h3>
+                <div class="table-responsive">
+                    <table id="detail-classes-table">
+                        <thead>
+                            <tr>
+                                <th>Mã GV</th>
+                                <th>Họ tên</th>
+                                <th>Học vị</th>
+                                <th>Email</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detail-lecturers-tbody">
+                            <tr>
+                                <td colspan="4" class="no-data">Chưa có dữ liệu</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <h3 class="section-title"><i class="fas fa-book"></i> Danh sách môn học</h3>
+                <div class="table-responsive">
+                    <table id="detail-classes-table">
+                        <thead>
+                            <tr>
+                                <th>Mã môn</th>
+                                <th>Tên môn</th>
+                                <th>Số tín chỉ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detail-courses-tbody">
+                            <tr>
+                                <td colspan="3" class="no-data">Chưa có dữ liệu</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/script.js"></script>
+    <script>
+        $(document).ready(function () {
+            const API_URL = '/api/khoas';
+            let dataTable;
+            let khoasData = [];
+            let currentFilters = {};
+            let isUploading = false;
+
+            // DOM Elements
+            const khoaModal = document.getElementById('khoa-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const khoaForm = document.getElementById('khoa-form');
+            const submitBtn = document.getElementById('submit-btn');
+            const addBtn = document.getElementById('add-khoa-btn');
+            const closeBtn = document.querySelector('.close-btn');
+            const maKhoaHiddenInput = document.getElementById('khoa-maKhoa-hidden');
+            const maKhoaInput = document.getElementById('maKhoa');
+            const tenKhoaInput = document.getElementById('tenKhoa');
+            const searchInput = document.getElementById('search-input');
+            const searchBtn = document.getElementById('search-btn');
+            const logoutBtn = document.getElementById('logout-btn');
+            const importBtn = document.getElementById('import-btn');
+            const importFileInput = document.getElementById('import-file');
+            const exportBtn = document.getElementById('export-btn');
+
+            // Helper Functions
+            function showLoading() {
+                document.getElementById('loading-spinner').style.display = 'flex';
+            }
+
+            function hideLoading() {
+                document.getElementById('loading-spinner').style.display = 'none';
+            }
+
+            function updateBulkActions() {
+                const selectedCheckboxes = $('.select-row:checked');
+                const count = selectedCheckboxes.length;
+                const totalRows = $('.select-row').length;
+
+                $('#selected-count').text(count === 0 ? 'Không có mục nào được chọn' : `${count} mục được chọn (trong ${totalRows})`);
+
+                const bulkDiv = $('.bulk-actions');
+                const bulkButtons = $('#bulk-delete-btn, #bulk-export-btn');
+
+                if (count > 0) {
+                    bulkDiv.css('display', 'flex');
+                    bulkButtons.prop('disabled', false);
+                } else {
+                    bulkDiv.css('display', 'none');
+                    bulkButtons.prop('disabled', true);
+                }
+            }
+
+            // Load Dashboard Stats
+            async function loadDashboardStats() {
+                try {
+                    const response = await fetch(`${API_URL}/stats`);
+                    if (response.ok) {
+                        const stats = await response.json();
+                        document.getElementById('total-khoa').textContent = stats.totalKhoa || 0;
+                        document.getElementById('total-students').textContent = stats.totalStudents || 0;
+                        document.getElementById('total-lecturers').textContent = stats.totalLecturers || 0;
+                        document.getElementById('total-courses').textContent = stats.totalCourses || 0;
+                        document.getElementById('total-classes').textContent = stats.totalClasses || 0;
+                    }
+                } catch (error) {
+                    console.error('Lỗi tải thống kê:', error);
+                }
+            }
+
+            // Fetch Khoas
+            async function fetchKhoas(filters = {}) {
+                showLoading();
+                const params = new URLSearchParams(filters);
+
+                try {
+                    const response = await fetch(`${API_URL}?${params}`);
+                    if (!response.ok) throw new Error('Lỗi tải dữ liệu');
+                    const result = await response.json();
+                    khoasData = result.data || result;
+
+                    if ($.fn.DataTable.isDataTable('#giangvien-table')) {
+                        dataTable.destroy();
+                    }
+
+                    const tbody = $('#giangvien-table tbody');
+                    tbody.empty();
+
+                    khoasData.forEach(row => {
+                        const tr = $('<tr>');
+                        tr.append(`<td><input type="checkbox" class="select-row" value="${row.maKhoa}"></td>`);
+                        tr.append(`<td><strong>${row.maKhoa}</strong></td>`);
+                        tr.append(`<td>${row.tenKhoa}</td>`);
+                        tr.append(`<td>${row.soSinhVien || 0}</td>`);
+                        tr.append(`<td>${row.soGiangVien || 0}</td>`);
+                        tr.append(`<td>${row.soMonHoc || 0}</td>`);
+                        tr.append(`<td>${row.soLopHoc || 0}</td>`);
+
+                        const actionTd = $('<td class="action-buttons">');
+                        actionTd.append(`<button onclick="viewKhoaDetails('${row.maKhoa}')" class="action-btn view-phancong-btn" title="Xem chi tiết"><i class="fas fa-eye"></i></button>`);
+                        actionTd.append(`<button onclick="handleEdit('${row.maKhoa}')" class="action-btn edit-btn" title="Sửa"><i class="fas fa-edit"></i></button>`);
+                        actionTd.append(`<button onclick="handleDelete('${row.maKhoa}')" class="action-btn delete-btn" title="Xóa"><i class="fas fa-trash"></i></button>`);
+                        tr.append(actionTd);
+                        tbody.append(tr);
+                    });
+
+                    dataTable = $('#giangvien-table').DataTable({
+                        pageLength: 10,
+                        lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Tất cả"]],
+                        language: {
+                            url: "https://cdn.datatables.net/plug-ins/1.13.7/i18n/vi.json"
+                        },
+                        searching: false,
+                        info: false,
+                        paging: true,
+                        ordering: true,
+                        columnDefs: [
+                            { orderable: false, targets: [0, 7] }
+                        ]
+                    });
+
+                    currentFilters = filters;
+                    updateBulkActions();
+                } catch (error) {
+                    console.error('Lỗi tải danh sách khoa:', error);
+                    alert('Lỗi: ' + error.message);
+                } finally {
+                    hideLoading();
+                }
+            }
+
+            // Event Listeners
+            $('#select-all').on('change', function () {
+                $('.select-row').prop('checked', this.checked);
+                updateBulkActions();
+            });
+
+            $(document).on('change', '.select-row', function () {
+                const totalCheckboxes = $('.select-row').length;
+                const checkedCheckboxes = $('.select-row:checked').length;
+                $('#select-all').prop('checked', totalCheckboxes > 0 && checkedCheckboxes === totalCheckboxes);
+                updateBulkActions();
+            });
+
+            $('#bulk-delete-btn').on('click', async function () {
+                const selected = $('.select-row:checked').map(function () { return $(this).val(); }).get();
+                if (selected.length === 0) return;
+
+                if (!confirm(`Bạn có chắc chắn muốn xóa ${selected.length} khoa đã chọn?`)) return;
+
+                try {
+                    showLoading();
+                    let errorCount = 0;
+                    for (let maKhoa of selected) {
+                        const response = await fetch(`${API_URL}/${maKhoa}`, { method: 'DELETE' });
+                        if (!response.ok) {
+                            errorCount++;
+                        }
+                    }
+                    if (errorCount > 0) {
+                        alert(`Xóa thành công ${selected.length - errorCount}/${selected.length} khoa. ${errorCount} khoa không thể xóa vì đang có liên kết dữ liệu.`);
+                    } else {
+                        alert('Xóa thành công!');
+                    }
+                    await fetchKhoas(currentFilters);
+                    await loadDashboardStats();
+                } catch (error) {
+                    console.error('Lỗi khi xóa bulk:', error);
+                    alert(`Thao tác xóa thất bại: ${error.message}`);
+                } finally {
+                    hideLoading();
+                }
+            });
+
+            $('#bulk-export-btn').on('click', function () {
+                const selected = $('.select-row:checked').map(function () { return $(this).val(); }).get();
+                if (selected.length === 0) return;
+
+                const selectedData = khoasData.filter(k => selected.includes(k.maKhoa));
+                exportToExcel(selectedData, 'khoa_da_chon');
+            });
+
+            searchBtn.addEventListener('click', () => {
+                const query = searchInput.value.trim();
+                const newFilters = {};
+                if (query) newFilters._q = query;
+                fetchKhoas(newFilters);
+            });
+
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') searchBtn.click();
+            });
+
+            addBtn.addEventListener('click', () => {
+                modalTitle.textContent = 'Thêm Khoa mới';
+                submitBtn.textContent = 'Thêm';
+                maKhoaHiddenInput.value = '';
+                maKhoaInput.disabled = false;
+                khoaForm.reset();
+                khoaModal.style.display = 'flex';
+            });
+
+            closeBtn.addEventListener('click', () => {
+                khoaModal.style.display = 'none';
+            });
+
+            khoaModal.addEventListener('click', (e) => {
+                if (e.target === khoaModal) khoaModal.style.display = 'none';
+            });
+
+            khoaForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const maKhoa_update_target = maKhoaHiddenInput.value;
+
+                const khoa = {
+                    maKhoa: maKhoaInput.value,
+                    tenKhoa: tenKhoaInput.value,
+                };
+
+                try {
+                    let response;
+                    let method = maKhoa_update_target ? 'PUT' : 'POST';
+                    let url = maKhoa_update_target ? `${API_URL}/${maKhoa_update_target}` : API_URL;
+
+                    response = await fetch(url, {
+                        method: method,
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(khoa)
+                    });
+
+                    if (response.ok) {
+                        const successMsg = maKhoa_update_target ? 'Cập nhật khoa thành công!' : 'Thêm khoa thành công!';
+                        alert(successMsg);
+                        khoaModal.style.display = 'none';
+                    } else {
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || 'Thao tác thất bại');
+                    }
+
+                    khoaForm.reset();
+                    await fetchKhoas();
+                    await loadDashboardStats();
+                } catch (error) {
+                    console.error('Lỗi khi thêm/sửa:', error);
+                    alert(`Thao tác thất bại: ${error.message}`);
+                }
+            });
+
+            window.handleEdit = function (maKhoa) {
+                const khoa = khoasData.find(s => s.maKhoa === maKhoa);
+                if (khoa) {
+                    maKhoaHiddenInput.value = khoa.maKhoa;
+                    maKhoaInput.value = khoa.maKhoa;
+                    maKhoaInput.disabled = true;
+                    tenKhoaInput.value = khoa.tenKhoa;
+
+                    modalTitle.textContent = 'Cập nhật Khoa';
+                    submitBtn.textContent = 'Lưu Thay Đổi';
+                    khoaModal.style.display = 'flex';
+                }
+            };
+
+            window.handleDelete = async function (maKhoa) {
+                if (confirm(`Bạn có chắc chắn muốn xóa khoa có Mã Khoa: ${maKhoa} không? Thao tác này có thể bị lỗi nếu khoa đang có Sinh viên, Giảng viên hoặc Lớp học liên kết.`)) {
+                    try {
+                        const response = await fetch(`${API_URL}/${maKhoa}`, {
+                            method: 'DELETE'
+                        });
+
+                        if (response.ok) {
+                            alert('Xóa khoa thành công!');
+                            await fetchKhoas();
+                            await loadDashboardStats();
+                        } else {
+                            const errorData = await response.json();
+                            throw new Error(errorData.message || 'Xóa thất bại');
+                        }
+                    } catch (error) {
+                        console.error('Lỗi khi xóa:', error);
+                        alert(`Thao tác xóa thất bại: ${error.message}`);
+                    }
+                }
+            };
+
+            // Import from Excel
+            importFileInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file || isUploading) return;
+
+                isUploading = true;
+                importBtn.disabled = true;
+                importBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang upload...';
+
+                try {
+                    showLoading();
+                    const data = await file.arrayBuffer();
+                    const workbook = XLSX.read(data);
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+                    if (jsonData.length === 0) {
+                        throw new Error('File không có dữ liệu!');
+                    }
+
+                    let successCount = 0;
+                    let errorRows = [];
+
+                    for (let i = 0; i < jsonData.length; i++) {
+                        const row = jsonData[i];
+                        const maKhoa = row['Mã Khoa'] || row['maKhoa'];
+                        const tenKhoa = row['Tên Khoa'] || row['tenKhoa'];
+
+                        if (!maKhoa || !tenKhoa) {
+                            errorRows.push({ row: i + 2, error: 'Thiếu thông tin bắt buộc' });
+                            continue;
+                        }
+
+                        try {
+                            const response = await fetch(API_URL, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ maKhoa, tenKhoa })
+                            });
+
+                            if (response.ok) {
+                                successCount++;
+                            } else {
+                                const errorData = await response.json();
+                                errorRows.push({ row: i + 2, error: errorData.message });
+                            }
+                        } catch (err) {
+                            errorRows.push({ row: i + 2, error: err.message });
+                        }
+                    }
+
+                    let message = `Import thành công ${successCount}/${jsonData.length} dòng.`;
+                    if (errorRows.length > 0) {
+                        message += `\n\nLỗi ở các dòng: ${errorRows.slice(0, 5).map(e => `${e.row} (${e.error})`).join(', ')}`;
+                        if (errorRows.length > 5) {
+                            message += `... và ${errorRows.length - 5} lỗi khác`;
+                        }
+                    }
+                    alert(message);
+
+                    e.target.value = '';
+                    await fetchKhoas(currentFilters);
+                    await loadDashboardStats();
+                } catch (error) {
+                    console.error('Lỗi import:', error);
+                    alert(`Import thất bại: ${error.message}`);
+                    e.target.value = '';
+                } finally {
+                    isUploading = false;
+                    importBtn.disabled = false;
+                    importBtn.innerHTML = '<i class="fas fa-upload"></i> Import từ File';
+                    hideLoading();
+                }
+            });
+
+            importBtn.addEventListener('click', () => {
+                importFileInput.click();
+            });
+
+            // Export to Excel
+            function exportToExcel(data, filename) {
+                const exportData = data.map(row => ({
+                    'Mã Khoa': row.maKhoa,
+                    'Tên Khoa': row.tenKhoa,
+                    'Số Sinh viên': row.soSinhVien || 0,
+                    'Số Giảng viên': row.soGiangVien || 0,
+                    'Số Môn học': row.soMonHoc || 0,
+                    'Số Lớp học': row.soLopHoc || 0
+                }));
+
+                const ws = XLSX.utils.json_to_sheet(exportData);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Danh sách Khoa');
+                XLSX.writeFile(wb, `${filename}_${new Date().toISOString().split('T')[0]}.xlsx`);
+            }
+
+            exportBtn.addEventListener('click', () => {
+                exportToExcel(khoasData, 'danh_sach_khoa');
+            });
+
+            window.viewKhoaDetails = async function (maKhoa) {
+                try {
+                    showLoading();
+                    const response = await fetch(`${API_URL}/${maKhoa}/details`);
+                    if (!response.ok) throw new Error('Không thể tải chi tiết');
+
+                    const data = await response.json();
+                    const info = data.info;
+                    const stats = data.stats;
+
+                    // Điền thông tin cơ bản
+                    document.getElementById('detail-maKhoa').textContent = info.maKhoa;
+                    document.getElementById('detail-tenKhoa').textContent = info.tenKhoa;
+
+                    // Thống kê
+                    document.getElementById('detail-studentCount').textContent = stats.soSinhVien || 0;
+                    document.getElementById('detail-lecturerCount').textContent = stats.soGiangVien || 0;
+                    document.getElementById('detail-courseCount').textContent = stats.soMonHoc || 0;
+                    document.getElementById('detail-classCount').textContent = stats.soLopHoc || 0; 
+
+                    // Danh sách giảng viên
+                    const lecturersTbody = document.getElementById('detail-lecturers-tbody');
+                    if (data.lecturers && data.lecturers.length > 0) {
+                        lecturersTbody.innerHTML = data.lecturers.map(lec => `
+                    <tr>
+                        <td>${lec.maGV}</td>
+                        <td>${lec.hoTen}</td>
+                        <td>${lec.hocVi}</td>
+                        <td>${lec.email || 'N/A'}</td>
+                    </tr>
+                `).join('');
+                    } else {
+                        lecturersTbody.innerHTML = '<tr><td colspan="4" class="no-data">Chưa có dữ liệu</td></tr>';
+                    }
+
+                    // Danh sách môn học
+                    const coursesTbody = document.getElementById('detail-courses-tbody');
+                    if (data.courses && data.courses.length > 0) {
+                        coursesTbody.innerHTML = data.courses.map(course => `
+                    <tr>
+                        <td>${course.maMH}</td>
+                        <td>${course.tenMH}</td>
+                        <td>${course.soTinChi}</td>
+                    </tr>
+                `).join('');
+                    } else {
+                        coursesTbody.innerHTML = '<tr><td colspan="3" class="no-data">Chưa có dữ liệu</td></tr>';
+                    }
+
+                    document.getElementById('detail-modal').style.display = 'flex';
+                    hideLoading();
+                } catch (error) {
+                    console.error('Lỗi tải chi tiết:', error);
+                    alert('Không thể tải chi tiết khoa');
+                    hideLoading();
+                }
+            };
+
+            // Close detail modal
+            document.querySelector('.close-btn-detail').addEventListener('click', () => {
+                document.getElementById('detail-modal').style.display = 'none';
+            });
+
+            document.getElementById('detail-modal').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('detail-modal')) {
+                    document.getElementById('detail-modal').style.display = 'none';
+                }
+            });
+
+            logoutBtn.addEventListener('click', () => {
+                if (confirm('Bạn có chắc chắn muốn thoát khỏi hệ thống?')) {
+                    sessionStorage.clear();
+                    window.location.href = '../index.html';
+                }
+            });
+
+            // Initial Load
+            loadDashboardStats();
+            fetchKhoas();
+        });
+    </script>
+</body>
+
+</html>

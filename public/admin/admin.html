@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Tài khoản - Hệ thống</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/giangvien.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <script>localStorage.theme === 'dark' && document.documentElement.setAttribute('data-theme', 'dark');</script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+</head>
+
+<body>
+
+    <div class="sidebar" id="sidebar">
+        <div>
+            <div class="header">
+                <img src="../pictures/admin.jpg" alt="">
+                <div class="info">
+                    <strong>Admin</strong><br>
+                </div>
+            </div>
+            <div class="menu">
+                <a href="../admin/admin.html" class="menu-item active"><i class="fa-solid fa-user"></i><span>Quản lý tài
+                        khoản</span></a>
+                <a href="../admin/student.html" class="menu-item"><i class="fas fa-chart-bar"></i><span>Quản lý sinh
+                        viên</span></a>
+                <a href="../admin/giangvienadmin.html" class="menu-item"><i
+                        class="fa-solid fa-graduation-cap"></i><span>Quản lý giảng viên</span></a>
+                <a href="../admin/khoa.html" class="menu-item"><i class="fa-solid fa-building"></i><span>Quản lý
+                        khoa</span></a>
+                <a href="../admin/lophoc.html" class="menu-item"><i class="fas fa-heart"></i><span>Quản lý lớp
+                        học</span></a>
+                <a href="../admin/monhoc.html" class="menu-item"><i class="fas fa-wallet"></i><span>Quản lý môn
+                        học</span></a>
+                <a href="../admin/diem.html" class="menu-item"><i class="fa-solid fa-paintbrush"></i><span>Quản lý
+                        điểm</span></a>
+                <a href="../admin/phancong.html" class="menu-item"><i class="fas fa-tasks"></i><span>Phân công giảng
+                        dạy</span></a>
+                <a href="../admin/lichthi.html" class="menu-item"><i class="fa-solid fa-bell"></i><span>Quản lý lịch
+                        thi</span></a>
+                <a href="../admin/phanhoi.html" class="menu-item"><i class="fa-solid fa-comments"></i><span>Quản lý phản 
+                        hồi</span></a>
+            </div>
+        </div>
+        <div class="bottom">
+            <div class="menu-item" id="logout-btn"><i class="fas fa-sign-out-alt"></i><span>Thoát</span></div>
+            <div class="toggle-theme">
+                <i class="fas fa-moon"></i><span>Chế độ</span>
+                <label class="switch">
+                    <input type="checkbox" id="theme-toggle">
+                </label>
+            </div>
+            <div class="toggle-sidebar">
+                <i class="fas fa-angle-double-left" id="collapse-icon"></i><span></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="text-center">
+            <h1>Quản lý Tài khoản 🔐</h1>
+        </div>
+
+        <!-- Dashboard Stats -->
+        <div class="dashboard-section">
+            <div class="stats-cards">
+                <div class="stat-card stat-card-blue">
+                    <div class="stat-card-content">
+                        <div class="stat-info">
+                            <p class="stat-label">Tổng tài khoản</p>
+                            <h2 id="total-accounts" class="stat-value">0</h2>
+                        </div>
+                        <i class="fas fa-users stat-icon"></i>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-card-green">
+                    <div class="stat-card-content">
+                        <div class="stat-info">
+                            <p class="stat-label">Hoạt động</p>
+                            <h2 id="total-active" class="stat-value">0</h2>
+                        </div>
+                        <i class="fas fa-check-circle stat-icon"></i>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-card-orange">
+                    <div class="stat-card-content">
+                        <div class="stat-info">
+                            <p class="stat-label">Bị khóa</p>
+                            <h2 id="total-locked" class="stat-value">0</h2>
+                        </div>
+                        <i class="fas fa-lock stat-icon"></i>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-card-purple">
+                    <div class="stat-card-content">
+                        <div class="stat-info">
+                            <p class="stat-label">Quản trị viên</p>
+                            <h2 id="total-admins" class="stat-value">0</h2>
+                        </div>
+                        <i class="fas fa-user-shield stat-icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-bar">
+            <button id="add-account-btn" class="primary-btn"><i class="fas fa-user-plus"></i> Thêm Tài khoản</button>
+            <button id="import-btn" class="primary-btn"><i class="fas fa-upload"></i> Import Excel</button>
+            <input type="file" id="import-file" accept=".xlsx,.xls" style="display: none;">
+
+            <div class="search-bar">
+                <input type="text" id="search-input" placeholder="Tìm kiếm theo Tên đăng nhập, Mã TK...">
+                <button id="search-btn"><i class="fas fa-search"></i></button>
+            </div>
+
+            <button id="export-btn" class="secondary-btn"><i class="fas fa-download"></i> Export Excel</button>
+
+            <div class="filter-section">
+                <select id="filter-role" class="filter-select">
+                    <option value="">Tất cả vai trò</option>
+                    <option value="Admin">Admin</option>
+                    <option value="SinhVien">Sinh Viên</option>
+                    <option value="GiangVien">Giảng Viên</option>
+                </select>
+                <select id="filter-status" class="filter-select">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="active">Hoạt động</option>
+                    <option value="locked">Bị khóa</option>
+                </select>
+                <button id="apply-filter" class="primary-btn"><i class="fas fa-filter"></i> Áp dụng</button>
+                <button id="clear-filter" class="secondary-btn"><i class="fas fa-times"></i> Xóa lọc</button>
+            </div>
+        </div>
+
+        <!-- Bulk Actions -->
+        <div class="bulk-actions">
+            <div id="selected-count">Không có mục nào được chọn</div>
+            <div>
+                <button id="bulk-lock-btn" class="bulk-btn bulk-lock" disabled><i class="fas fa-lock"></i> Khóa</button>
+                <button id="bulk-unlock-btn" class="bulk-btn bulk-unlock" disabled><i class="fas fa-unlock"></i> Mở
+                    khóa</button>
+                <button id="bulk-delete-btn" class="bulk-btn bulk-delete" disabled><i class="fas fa-trash"></i>
+                    Xóa</button>
+                <button id="bulk-export-btn" class="bulk-btn bulk-export" disabled><i class="fas fa-download"></i>
+                    Xuất</button>
+            </div>
+        </div>
+
+        <div class="table-card">
+            <h2 class="text-center">Danh sách Tài khoản</h2>
+            <table id="giangvien-table" class="display">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="select-all"></th>
+                        <th>Mã TK</th>
+                        <th>Tên Đăng nhập</th>
+                        <th>Vai Trò</th>
+                        <th>Trạng thái</th>
+                        <th>Lần đăng nhập cuối</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="loading-spinner" class="spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Đang tải...</p>
+        </div>
+    </div>
+
+    <!-- Modal Thêm/Sửa Tài khoản -->
+    <div id="account-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2 id="modal-title">Thêm Tài khoản</h2>
+            <form id="account-form">
+                <input type="hidden" id="account-maTK-hidden">
+
+                <div class="form-group">
+                    <label for="maTK"><i class="fas fa-id-card"></i> Mã Tài khoản:</label>
+                    <input type="text" id="maTK" required>
+                    <small class="form-hint">VD: TK001, SV001, GV001</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="tenDangNhap"><i class="fas fa-user"></i> Tên Đăng nhập:</label>
+                    <input type="text" id="tenDangNhap" required>
+                    <small class="form-hint">Tên đăng nhập để truy cập hệ thống</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="matKhau"><i class="fas fa-lock"></i> Mật Khẩu:</label>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="matKhau" required>
+                        <button type="button" class="toggle-password" onclick="togglePassword()">
+                            <i class="fas fa-eye" id="toggle-icon"></i>
+                        </button>
+                    </div>
+                    <small class="form-hint" id="password-hint">Tối thiểu 6 ký tự. Để trống nếu không muốn đổi mật khẩu
+                        (khi sửa)</small>
+                    <div class="password-strength">
+                        <div class="strength-bar" id="strength-bar"></div>
+                        <span id="strength-text"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="vaiTro"><i class="fas fa-user-tag"></i> Vai Trò:</label>
+                    <select id="vaiTro" required>
+                        <option value="">-- Chọn vai trò --</option>
+                        <option value="Admin">Admin</option>
+                        <option value="SinhVien">Sinh Viên</option>
+                        <option value="GiangVien">Giảng Viên</option>
+                    </select>
+                    <small class="form-hint">Vai trò xác định quyền truy cập trong hệ thống</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="trangThai"><i class="fas fa-toggle-on"></i> Trạng thái:</label>
+                    <select id="trangThai" required>
+                        <option value="active">Hoạt động</option>
+                        <option value="locked">Bị khóa</option>
+                    </select>
+                    <small class="form-hint">Tài khoản bị khóa không thể đăng nhập</small>
+                </div>
+
+                <button type="submit" id="submit-btn" class="primary-btn"
+                    style="width: 100%; margin-top: 25px;">Thêm</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Activity Log -->
+    <div id="activity-modal" class="modal">
+        <div class="modal-content phancong-modal-content">
+            <span class="close-btn-detail">&times;</span>
+            <h2 id="activity-title">Lịch sử hoạt động</h2>
+
+            <div id="activity-content">
+                <div class="activity-header">
+                    <div class="info-item">
+                        <strong>Mã TK:</strong> <span id="activity-maTK">-</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Tên đăng nhập:</strong> <span id="activity-tenDN">-</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Vai trò:</strong> <span id="activity-role">-</span>
+                    </div>
+                </div>
+
+                <div class="activity-list">
+                    <h3><i class="fas fa-history"></i> Hoạt động gần đây</h3>
+                    <div id="activity-timeline">
+                        <p class="no-data">Chưa có dữ liệu hoạt động</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="../js/script.js"></script>
+    <script>
+        $(document).ready(function () {
+            const API_BASE_URL = '/api/accounts';
+            let dataTable;
+            let accountsData = [];
+            let currentFilters = {};
+
+            const accountModal = document.getElementById('account-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const accountForm = document.getElementById('account-form');
+            const submitBtn = document.getElementById('submit-btn');
+            const addBtn = document.getElementById('add-account-btn');
+            const closeBtn = document.querySelector('.close-btn');
+            const maTKHiddenInput = document.getElementById('account-maTK-hidden');
+            const maTKInput = document.getElementById('maTK');
+            const tenDangNhapInput = document.getElementById('tenDangNhap');
+            const matKhauInput = document.getElementById('matKhau');
+            const vaiTroInput = document.getElementById('vaiTro');
+            const trangThaiInput = document.getElementById('trangThai');
+            const searchInput = document.getElementById('search-input');
+            const searchBtn = document.getElementById('search-btn');
+            const filterRole = document.getElementById('filter-role');
+            const filterStatus = document.getElementById('filter-status');
+            const applyFilterBtn = document.getElementById('apply-filter');
+            const clearFilterBtn = document.getElementById('clear-filter');
+            const importBtn = document.getElementById('import-btn');
+            const importFileInput = document.getElementById('import-file');
+            const exportBtn = document.getElementById('export-btn');
+            const bulkExportBtn = document.getElementById('bulk-export-btn');
+            const bulkLockBtn = document.getElementById('bulk-lock-btn');
+            const bulkUnlockBtn = document.getElementById('bulk-unlock-btn');
+            const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
+            const selectAllCheckbox = document.getElementById('select-all');
+            const activityModal = document.getElementById('activity-modal');
+            const closeActivityBtn = document.querySelector('.close-btn-detail');
+
+            function showLoading() {
+                document.getElementById('loading-spinner').style.display = 'flex';
+            }
+
+            function hideLoading() {
+                document.getElementById('loading-spinner').style.display = 'none';
+            }
+
+            // Password strength checker
+            matKhauInput.addEventListener('input', function () {
+                const password = this.value;
+                const strengthBar = document.getElementById('strength-bar');
+                const strengthText = document.getElementById('strength-text');
+
+                if (password.length === 0) {
+                    strengthBar.style.width = '0%';
+                    strengthText.textContent = '';
+                    return;
+                }
+
+                let strength = 0;
+                if (password.length >= 6) strength += 25;
+                if (password.length >= 8) strength += 25;
+                if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength += 25;
+                if (/\d/.test(password)) strength += 15;
+                if (/[^a-zA-Z\d]/.test(password)) strength += 10;
+
+                strengthBar.style.width = strength + '%';
+
+                if (strength < 40) {
+                    strengthBar.className = 'strength-bar weak';
+                    strengthText.textContent = 'Yếu';
+                } else if (strength < 70) {
+                    strengthBar.className = 'strength-bar medium';
+                    strengthText.textContent = 'Trung bình';
+                } else {
+                    strengthBar.className = 'strength-bar strong';
+                    strengthText.textContent = 'Mạnh';
+                }
+            });
+
+            function hashPassword(password) {
+                return CryptoJS.SHA256(password).toString();
+            }
+
+            function updateBulkActions() {
+                const selectedCheckboxes = $('.select-row:checked');
+                const count = selectedCheckboxes.length;
+                const totalRows = $('.select-row').length;
+
+                $('#selected-count').text(count === 0 ? 'Không có mục nào được chọn' : `${count} mục được chọn ${totalRows > 0 ? `(trong ${totalRows})` : ''}`);
+
+                const bulkButtons = $('#bulk-delete-btn, #bulk-export-btn, #bulk-lock-btn, #bulk-unlock-btn');
+                if (count > 0) {
+                    $('.bulk-actions').css('display', 'flex');
+                    bulkButtons.prop('disabled', false);
+                } else {
+                    $('.bulk-actions').css('display', 'none');
+                    bulkButtons.prop('disabled', true);
+                }
+            }
+
+            $(document).on('change', '.select-row', updateBulkActions);
+
+            selectAllCheckbox.addEventListener('change', function () {
+                $('.select-row').prop('checked', this.checked);
+                updateBulkActions();
+            });
+
+            async function loadDashboardStats() {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/stats/overview`);
+                    const stats = await response.json();
+
+                    document.getElementById('total-accounts').textContent = stats.totalAccounts || 0;
+                    document.getElementById('total-active').textContent = stats.totalActive || 0;
+                    document.getElementById('total-locked').textContent = stats.totalLocked || 0;
+                    document.getElementById('total-admins').textContent = stats.totalAdmins || 0;
+                } catch (error) {
+                    console.error('Lỗi tải thống kê:', error);
+                }
+            }
+
+            async function fetchAccounts(filters = {}) {
+                showLoading();
+                const params = new URLSearchParams(filters);
+
+                try {
+                    const url = params.toString() ? `${API_BASE_URL}?${params}` : API_BASE_URL;
+                    const response = await fetch(url);
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || 'Lỗi khi tải dữ liệu tài khoản');
+                    }
+
+                    accountsData = await response.json();
+
+                    // ✅ DESTROY DataTable an toàn
+                    if ($.fn.DataTable.isDataTable('#giangvien-table')) {
+                        dataTable.clear().draw();
+                        dataTable.destroy();
+                        dataTable = null;
+                    }
+
+                    const tbody = $('#giangvien-table tbody');
+                    tbody.empty();
+
+                    if (accountsData.length === 0) {
+                        tbody.html('<tr><td colspan="7" style="text-align:center;">Không tìm thấy tài khoản nào.</td></tr>');
+                        hideLoading();
+                        return;
+                    }
+
+                    // ✅ RENDER dữ liệu
+                    accountsData.forEach(account => {
+                        const statusClass = account.trangThai === 'active' ? 'status-active' : 'status-locked';
+                        const statusIcon = account.trangThai === 'active' ? 'fa-check-circle' : 'fa-lock';
+                        const statusText = account.trangThai === 'active' ? 'Hoạt động' : 'Bị khóa';
+
+                        const tr = $('<tr>');
+                        tr.append(`<td><input type="checkbox" class="select-row" value="${account.maTK}"></td>`);
+                        tr.append(`<td>${account.maTK}</td>`);
+                        tr.append(`<td>${account.tenDangNhap}</td>`);
+                        tr.append(`<td><span class="role-badge role-${account.vaiTro.toLowerCase()}">${account.vaiTro}</span></td>`);
+                        tr.append(`<td><span class="status-badge ${statusClass}"><i class="fas ${statusIcon}"></i> ${statusText}</span></td>`);
+                        tr.append(`<td>${account.lastLogin ? new Date(account.lastLogin).toLocaleString('vi-VN') : 'Chưa đăng nhập'}</td>`);
+
+                        // ✅ SỬA: Action buttons - Sử dụng nowrap
+                        const actionTd = $('<td class="action-buttons" style="white-space: nowrap;">');
+                        actionTd.append(`<button onclick="viewActivity('${account.maTK}')" class="action-btn view-phancong-btn" title="Lịch sử"><i class="fas fa-history"></i></button>`);
+
+                        if (account.trangThai === 'active') {
+                            actionTd.append(`<button onclick="toggleLock('${account.maTK}', 'lock')" class="action-btn delete-btn" title="Khóa"><i class="fas fa-lock"></i></button>`);
+                        } else {
+                            actionTd.append(`<button onclick="toggleLock('${account.maTK}', 'unlock')" class="action-btn edit-btn" title="Mở khóa"><i class="fas fa-unlock"></i></button>`);
+                        }
+
+                        actionTd.append(`<button onclick="handleEdit('${account.maTK}')" class="action-btn edit-btn" title="Sửa"><i class="fas fa-edit"></i></button>`);
+                        actionTd.append(`<button onclick="handleDelete('${account.maTK}')" class="action-btn delete-btn" title="Xóa"><i class="fas fa-trash-alt"></i></button>`);
+                        tr.append(actionTd);
+
+                        tbody.append(tr);
+                    });
+
+                    // ✅ KHỞI TẠO DataTable
+                    dataTable = $('#giangvien-table').DataTable({
+                        "pageLength": 10,
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Tất cả"]],
+                        "language": {
+                            "url": "https://cdn.datatables.net/plug-ins/1.13.7/i18n/vi.json",
+                            "emptyTable": "Không có dữ liệu 📋",
+                            "zeroRecords": "Không tìm thấy kết quả phù hợp"
+                        },
+                        "searching": false,
+                        "info": false,
+                        "paging": true,
+                        "ordering": true,
+                        "autoWidth": false,
+                        "responsive": false, // ✅ Tắt responsive để tự control
+                        "columnDefs": [
+                            {
+                                "orderable": false,
+                                "targets": [0, 6],
+                                "className": "dt-center"
+                            },
+                            { "width": "50px", "targets": 0 },   // Checkbox
+                            { "width": "100px", "targets": 1 },  // Mã TK
+                            { "width": "150px", "targets": 2 },  // Tên đăng nhập
+                            { "width": "120px", "targets": 3 },  // Vai trò
+                            { "width": "120px", "targets": 4 },  // Trạng thái
+                            { "width": "180px", "targets": 5 },  // Lần đăng nhập cuối
+                            { "width": "200px", "targets": 6 }   // Hành động
+                        ],
+                        "drawCallback": function () {
+                            // ✅ Callback sau khi vẽ lại table
+                            updateBulkActions();
+                        }
+                    });
+
+                    currentFilters = filters;
+                    selectAllCheckbox.checked = false;
+                    updateBulkActions();
+                } catch (error) {
+                    console.error('Lỗi khi tải tài khoản:', error);
+                    const tbody = $('#giangvien-table tbody');
+                    tbody.html(`<tr><td colspan="7" style="text-align:center; color: red;">Lỗi kết nối hoặc tải dữ liệu: ${error.message}</td></tr>`);
+                } finally {
+                    hideLoading();
+                }
+            }
+
+            // Export to Excel
+            function exportToExcel(data, filename = 'tai-khoan.xlsx') {
+                const ws = XLSX.utils.json_to_sheet(data.map(acc => ({
+                    'Mã TK': acc.maTK,
+                    'Tên Đăng nhập': acc.tenDangNhap,
+                    'Vai Trò': acc.vaiTro,
+                    'Trạng thái': acc.trangThai === 'active' ? 'Hoạt động' : 'Bị khóa',
+                    'Lần đăng nhập cuối': acc.lastLogin ? new Date(acc.lastLogin).toLocaleString('vi-VN') : 'Chưa đăng nhập',
+                    'Ngày tạo': acc.createdAt ? new Date(acc.createdAt).toLocaleString('vi-VN') : ''
+                })));
+
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Tài khoản');
+                XLSX.writeFile(wb, filename);
+            }
+
+            exportBtn.addEventListener('click', () => {
+                if (accountsData.length === 0) {
+                    alert('Không có dữ liệu để xuất!');
+                    return;
+                }
+                exportToExcel(accountsData, `tai-khoan-${new Date().toLocaleDateString('vi-VN')}.xlsx`);
+            });
+
+            bulkExportBtn.addEventListener('click', () => {
+                const selected = $('.select-row:checked').map(function () {
+                    return $(this).val();
+                }).get();
+
+                const selectedData = accountsData.filter(a => selected.includes(a.maTK));
+                if (selectedData.length === 0) {
+                    alert('Không có dữ liệu được chọn!');
+                    return;
+                }
+                exportToExcel(selectedData, `tai-khoan-lua-chon-${new Date().toLocaleDateString('vi-VN')}.xlsx`);
+            });
+
+            // Import from Excel
+            importBtn.addEventListener('click', () => {
+                importFileInput.click();
+            });
+
+            importFileInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = async (evt) => {
+                    try {
+                        const data = new Uint8Array(evt.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+                        if (jsonData.length === 0) {
+                            alert('File Excel không có dữ liệu!');
+                            return;
+                        }
+
+                        let importedCount = 0;
+                        let errorCount = 0;
+
+                        for (const row of jsonData) {
+                            try {
+                                const accountData = {
+                                    maTK: row['Mã TK'] || row['maTK'],
+                                    tenDangNhap: row['Tên Đăng nhập'] || row['tenDangNhap'],
+                                    matKhau: hashPassword(row['Mật Khẩu'] || row['matKhau'] || '123456'),
+                                    vaiTro: row['Vai Trò'] || row['vaiTro'] || 'SinhVien'
+                                };
+
+                                if (!accountData.maTK || !accountData.tenDangNhap) {
+                                    errorCount++;
+                                    continue;
+                                }
+
+                                const response = await fetch(API_BASE_URL, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify(accountData)
+                                });
+
+                                if (response.ok) {
+                                    importedCount++;
+                                } else {
+                                    errorCount++;
+                                }
+                            } catch (err) {
+                                errorCount++;
+                            }
+                        }
+
+                        alert(`Nhập khẩu hoàn tất!\nThành công: ${importedCount}\nLỗi: ${errorCount}`);
+                        await fetchAccounts(currentFilters);
+                        await loadDashboardStats();
+                    } catch (error) {
+                        alert(`Lỗi khi đọc file: ${error.message}`);
+                    }
+                    importFileInput.value = '';
+                };
+                reader.readAsArrayBuffer(file);
+            });
+
+            // Add Account Button
+            addBtn.addEventListener('click', () => {
+                modalTitle.textContent = 'Thêm Tài khoản mới';
+                submitBtn.textContent = 'Thêm';
+                maTKHiddenInput.value = '';
+                maTKInput.disabled = false;
+                matKhauInput.required = true;
+                trangThaiInput.value = 'active';
+                document.getElementById('password-hint').textContent = 'Tối thiểu 6 ký tự';
+                accountForm.reset();
+                document.getElementById('strength-bar').style.width = '0%';
+                document.getElementById('strength-text').textContent = '';
+                accountModal.style.display = 'flex';
+            });
+
+            window.handleEdit = function (maTK) {
+                const account = accountsData.find(a => a.maTK === maTK);
+                if (account) {
+                    maTKHiddenInput.value = account.maTK;
+                    maTKInput.value = account.maTK;
+                    maTKInput.disabled = true;
+                    tenDangNhapInput.value = account.tenDangNhap;
+                    matKhauInput.value = '';
+                    matKhauInput.required = false;
+                    vaiTroInput.value = account.vaiTro;
+                    trangThaiInput.value = account.trangThai || 'active';
+
+                    document.getElementById('password-hint').textContent = 'Để trống nếu không muốn đổi mật khẩu';
+                    modalTitle.textContent = 'Cập nhật Tài khoản';
+                    submitBtn.textContent = 'Lưu Thay đổi';
+                    document.getElementById('strength-bar').style.width = '0%';
+                    document.getElementById('strength-text').textContent = '';
+                    accountModal.style.display = 'flex';
+                }
+            };
+
+            closeBtn.addEventListener('click', () => {
+                accountModal.style.display = 'none';
+            });
+
+            closeActivityBtn.addEventListener('click', () => {
+                activityModal.style.display = 'none';
+            });
+
+            window.addEventListener('click', (event) => {
+                if (event.target == accountModal) {
+                    accountModal.style.display = 'none';
+                }
+                if (event.target == activityModal) {
+                    activityModal.style.display = 'none';
+                }
+            });
+
+            accountForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const maTK_update_target = maTKHiddenInput.value;
+                const isEdit = !!maTK_update_target;
+
+                if (matKhauInput.value && matKhauInput.value.length < 6) {
+                    alert('Mật khẩu phải có ít nhất 6 ký tự!');
+                    return;
+                }
+
+                const account = {
+                    maTK: maTKInput.value,
+                    tenDangNhap: tenDangNhapInput.value,
+                    vaiTro: vaiTroInput.value,
+                    trangThai: trangThaiInput.value
+                };
+
+                if (matKhauInput.value) {
+                    account.matKhau = hashPassword(matKhauInput.value);
+                } else if (!isEdit) {
+                    alert('Vui lòng nhập mật khẩu!');
+                    return;
+                }
+
+                try {
+                    let url = API_BASE_URL;
+                    let method = 'POST';
+                    let successMessage = 'Thêm tài khoản thành công!';
+
+                    if (isEdit) {
+                        url = `${API_BASE_URL}/${maTK_update_target}`;
+                        method = 'PUT';
+                        successMessage = 'Cập nhật tài khoản thành công!';
+                    }
+
+                    const response = await fetch(url, {
+                        method: method,
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(account)
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || 'Thao tác thất bại');
+                    }
+
+                    alert(successMessage);
+                    accountModal.style.display = 'none';
+                    accountForm.reset();
+                    await fetchAccounts(currentFilters);
+                    await loadDashboardStats();
+
+                } catch (error) {
+                    console.error('Lỗi khi thêm/sửa:', error);
+                    alert(`Thao tác thất bại: ${error.message}`);
+                }
+            });
+
+            window.handleDelete = async function (maTK) {
+                if (confirm(`Bạn có chắc chắn muốn xóa tài khoản có Mã TK: ${maTK}?\n\nLưu ý: Việc xóa tài khoản có thể ảnh hưởng đến dữ liệu liên quan!`)) {
+                    try {
+                        showLoading(); // ✅ Hiển thị loading
+
+                        const response = await fetch(`${API_BASE_URL}/${maTK}`, { method: 'DELETE' });
+
+                        // ✅ KIỂM TRA response.ok TRƯỚC KHI parse JSON
+                        if (!response.ok) {
+                            let errorMessage = 'Xóa thất bại';
+                            try {
+                                const errorData = await response.json();
+                                errorMessage = errorData.message || errorMessage;
+                            } catch (parseErr) {
+                                console.warn('Không thể parse error response:', parseErr);
+                            }
+                            throw new Error(errorMessage);
+                        }
+
+                        // ✅ Parse JSON CHỈ KHI response.ok = true
+                        const result = await response.json();
+
+                        alert('Xóa tài khoản thành công!');
+
+                        // ✅ Reload dữ liệu
+                        await fetchAccounts(currentFilters);
+                        await loadDashboardStats();
+
+                    } catch (error) {
+                        console.error('Lỗi khi xóa:', error);
+                        alert(`Thao tác xóa thất bại: ${error.message}`);
+                    } finally {
+                        hideLoading(); // ✅ Ẩn loading
+                    }
+                }
+            };
+
+            window.toggleLock = async function (maTK, action) {
+                const actionText = action === 'lock' ? 'khóa' : 'mở khóa';
+                const newStatus = action === 'lock' ? 'locked' : 'active';
+
+                if (confirm(`Bạn có chắc chắn muốn ${actionText} tài khoản ${maTK}?`)) {
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/${maTK}/toggle-status`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ trangThai: newStatus })
+                        });
+
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.message || 'Thao tác thất bại');
+                        }
+
+                        alert(`${actionText.charAt(0).toUpperCase() + actionText.slice(1)} tài khoản thành công!`);
+                        await fetchAccounts(currentFilters);
+                        await loadDashboardStats();
+                    } catch (error) {
+                        alert(`Thao tác ${actionText} thất bại: ${error.message}`);
+                    }
+                }
+            };
+
+            // Bulk Lock/Unlock
+            bulkLockBtn.addEventListener('click', async () => {
+                const selected = $('.select-row:checked').map(function () {
+                    return $(this).val();
+                }).get();
+
+                if (selected.length === 0) {
+                    alert('Vui lòng chọn tài khoản!');
+                    return;
+                }
+
+                if (confirm(`Bạn có chắc chắn muốn khóa ${selected.length} tài khoản?`)) {
+                    let locked = 0;
+                    for (const maTK of selected) {
+                        try {
+                            const response = await fetch(`${API_BASE_URL}/${maTK}/toggle-status`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ trangThai: 'locked' })
+                            });
+                            if (response.ok) locked++;
+                        } catch (err) {
+                            console.error('Lỗi khóa:', err);
+                        }
+                    }
+                    alert(`Đã khóa ${locked}/${selected.length} tài khoản`);
+                    await fetchAccounts(currentFilters);
+                    await loadDashboardStats();
+                }
+            });
+
+            bulkUnlockBtn.addEventListener('click', async () => {
+                const selected = $('.select-row:checked').map(function () {
+                    return $(this).val();
+                }).get();
+
+                if (selected.length === 0) {
+                    alert('Vui lòng chọn tài khoản!');
+                    return;
+                }
+
+                if (confirm(`Bạn có chắc chắn muốn mở khóa ${selected.length} tài khoản?`)) {
+                    let unlocked = 0;
+                    for (const maTK of selected) {
+                        try {
+                            const response = await fetch(`${API_BASE_URL}/${maTK}/toggle-status`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ trangThai: 'active' })
+                            });
+                            if (response.ok) unlocked++;
+                        } catch (err) {
+                            console.error('Lỗi mở khóa:', err);
+                        }
+                    }
+                    alert(`Đã mở khóa ${unlocked}/${selected.length} tài khoản`);
+                    await fetchAccounts(currentFilters);
+                    await loadDashboardStats();
+                }
+            });
+
+            bulkDeleteBtn.addEventListener('click', async () => {
+                const selected = $('.select-row:checked').map(function () {
+                    return $(this).val();
+                }).get();
+
+                if (selected.length === 0) {
+                    alert('Vui lòng chọn tài khoản!');
+                    return;
+                }
+
+                if (confirm(`Bạn có chắc chắn muốn xóa ${selected.length} tài khoản?`)) {
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/bulk-delete`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ maTKList: selected })
+                        });
+
+                        if (!response.ok) throw new Error('Xóa hàng loạt thất bại');
+
+                        const result = await response.json();
+                        alert(result.message);
+                        await fetchAccounts(currentFilters);
+                        await loadDashboardStats();
+                    } catch (error) {
+                        alert(`Lỗi: ${error.message}`);
+                    }
+                }
+            });
+
+            window.viewActivity = async function (maTK) {
+                try {
+                    const account = accountsData.find(a => a.maTK === maTK);
+                    if (!account) return;
+
+                    document.getElementById('activity-maTK').textContent = maTK;
+                    document.getElementById('activity-tenDN').textContent = account.tenDangNhap;
+                    document.getElementById('activity-role').textContent = account.vaiTro;
+
+                    const response = await fetch(`${API_BASE_URL}/${maTK}/activity`);
+                    const activities = await response.json();
+
+                    const timeline = document.getElementById('activity-timeline');
+                    timeline.innerHTML = '';
+
+                    if (activities.length === 0) {
+                        timeline.innerHTML = '<p class="no-data">Chưa có hoạt động nào ghi nhận</p>';
+                    } else {
+                        activities.forEach(activity => {
+                            const time = new Date(activity.thoiGian).toLocaleString('vi-VN');
+                            const div = document.createElement('div');
+                            div.className = 'activity-item';
+                            div.innerHTML = `
+                        <div class="activity-time">${time}</div>
+                        <div class="activity-action"><strong>${activity.hoatDong}</strong></div>
+                        <div class="activity-detail">${activity.chiTiet || ''}</div>
+                    `;
+                            timeline.appendChild(div);
+                        });
+                    }
+
+                    activityModal.style.display = 'flex';
+                } catch (error) {
+                    console.error('Lỗi khi tải lịch sử:', error);
+                    alert('Lỗi khi tải lịch sử hoạt động');
+                }
+            };
+
+            // Search
+            searchBtn.addEventListener('click', () => {
+                const query = searchInput.value.trim();
+                const filters = { ...currentFilters };
+                if (query) filters._q = query;
+                fetchAccounts(filters);
+            });
+
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') searchBtn.click();
+            });
+
+            // Filter
+            applyFilterBtn.addEventListener('click', () => {
+                const filters = {};
+                const role = filterRole.value;
+                const status = filterStatus.value;
+
+                if (role) filters.role = role;
+                if (status) filters.status = status;
+
+                fetchAccounts(filters);
+            });
+
+            clearFilterBtn.addEventListener('click', () => {
+                filterRole.value = '';
+                filterStatus.value = '';
+                searchInput.value = '';
+                fetchAccounts({});
+            });
+
+            // Toggle Password Visibility
+            window.togglePassword = function () {
+                const icon = document.getElementById('toggle-icon');
+                if (matKhauInput.type === 'password') {
+                    matKhauInput.type = 'text';
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                } else {
+                    matKhauInput.type = 'password';
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                }
+            };
+
+            // --- 6. Xử lý nút Thoát (Logout) ---
+            const logoutBtn = document.getElementById('logout-btn');
+            logoutBtn.addEventListener('click', () => {
+                if (confirm('Bạn có chắc chắn muốn thoát khỏi hệ thống?')) {
+                    sessionStorage.clear(); // Xóa toàn bộ session storage nếu cần
+                    // Chuyển hướng về trang đăng nhập (giả sử đường dẫn là ../login.html)
+                    window.location.href = '../index.html';
+                }
+            });
+
+            // Initialize
+            loadDashboardStats();
+            fetchAccounts();
+
+            // Refresh every 5 minutes
+            setInterval(loadDashboardStats, 300000);
+        });
+    </script>
+</body>
+
+</html>

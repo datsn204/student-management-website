@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lịch Thi - Sinh Viên</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/student.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h1>Lịch Thi</h1>
+        </div>
+        <input type="text" class="search-bar" placeholder="Tìm kiếm môn thi...">
+        <div class="header-right">
+            <div class="notification" style="cursor: pointer;">
+                <i class="fas fa-bell"></i>
+                <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+            </div>
+            <div class="user-profile" id="userProfile">
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <span class="user-name">Đang tải... <i class="fas fa-chevron-down" id="chevron"></i></span>
+                <div class="dropdown-menu">
+                    <a href="change-password.html" class="dropdown-item">
+                        <i class="fas fa-key"></i> Đổi mật khẩu
+                    </a>
+                    <a href="../index.html" class="dropdown-item" id="logout">
+                        <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Sidebar -->
+        <nav class="sidebar" id="sidebar">
+            <a href="trangchusv.html" class="nav-item">
+                <i class="fas fa-home nav-icon"></i>
+                <span class="nav-text">Trang chủ</span>
+            </a>
+            <a href="thoikhoabieu.html" class="nav-item">
+                <i class="fas fa-calendar-alt nav-icon"></i>
+                <span class="nav-text">Thời khóa biểu</span>
+            </a>
+            <a href="ketquahoctap.html" class="nav-item">
+                <i class="fas fa-chart-line nav-icon"></i>
+                <span class="nav-text">Kết quả học tập</span>
+            </a>
+            <a href="xemlichthi.html" class="nav-item active">
+                <i class="fas fa-newspaper nav-icon"></i>
+                <span class="nav-text">Xem lịch thi</span>
+            </a>
+            <a href="guiphanhoi.html" class="nav-item">
+                <i class="fas fa-file-alt nav-icon"></i>
+                <span class="nav-text">Gửi phản hồi</span>
+            </a>
+            <a href="profile.html" class="nav-item">
+                <i class="fas fa-user-circle nav-icon"></i>
+                <span class="nav-text">Thông tin cá nhân</span>
+            </a>
+            <a href="settings.html" class="nav-item">
+                <i class="fas fa-cog nav-icon"></i>
+                <span class="nav-text">Khác</span>
+            </a>
+        </nav>
+
+        <div class="main-content">
+            <div id="loading" class="loading-container">
+                <i class="fas fa-spinner"></i>
+                <p>Đang tải lịch thi...</p>
+            </div>
+
+            <div id="examContent" style="display: none;">
+                <!-- Thông tin tổng quan -->
+                <div class="exam-info-card">
+                    <div class="info-box">
+                        <i class="fas fa-user-graduate"></i>
+                        <div class="info-box-content">
+                            <h4>Sinh viên</h4>
+                            <p id="studentName">Loading...</p>
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <i class="fas fa-users"></i>
+                        <div class="info-box-content">
+                            <h4>Lớp</h4>
+                            <p id="className">Loading...</p>
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <i class="fas fa-clipboard-list"></i>
+                        <div class="info-box-content">
+                            <h4>Tổng số kỳ thi</h4>
+                            <p id="totalExams">0</p>
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <i class="fas fa-clock"></i>
+                        <div class="info-box-content">
+                            <h4>Sắp tới (7 ngày)</h4>
+                            <p id="upcomingExams">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filter -->
+                <div class="filter-section">
+                    <label>
+                        <i class="fas fa-filter"></i> Hiển thị:
+                    </label>
+                    <select id="statusFilter">
+                        <option value="all">Tất cả</option>
+                        <option value="upcoming">Sắp tới</option>
+                        <option value="passed">Đã diễn ra</option>
+                    </select>
+                </div>
+
+                <!-- Exam Cards -->
+                <div class="exam-cards-container" id="examCardsContainer">
+                </div>
+
+                <!-- Timeline View -->
+                <div class="timeline-container" id="timelineContainer" style="display: none;">
+                    <div class="timeline-header">
+                        <span>Lịch Sử Thi</span>
+                    </div>
+                    <div class="timeline" id="timelineContent">
+                    </div>
+                </div>
+
+                <!-- Empty state -->
+                <div id="emptyState" class="empty-state" style="display: none;">
+                    <i class="fas fa-calendar-times"></i>
+                    <h3>Chưa có lịch thi</h3>
+                    <p>Hiện tại chưa có lịch thi nào được xếp cho lớp của bạn.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/scriptsv.js"></script>
+    <script>
+        const API_BASE_URL = 'http://localhost:3000/api';
+        let allExams = [];
+        let studentInfo = null;
+
+        // Lấy thông tin sinh viên và lịch thi
+        async function loadExamSchedule() {
+            try {
+                const maTK = sessionStorage.getItem('maTK');
+                const userRole = sessionStorage.getItem('userRole');
+
+                if (!maTK || userRole?.toLowerCase() !== 'sinhvien') {
+                    alert('Vui lòng đăng nhập với tài khoản sinh viên!');
+                    window.location.href = '../index.html';
+                    return;
+                }
+
+                // Lấy thông tin sinh viên
+                const svResponse = await fetch(`${API_BASE_URL}/students/by-account?maTK=${maTK}`);
+                if (!svResponse.ok) throw new Error('Không thể tải thông tin sinh viên');
+
+                studentInfo = await svResponse.json();
+
+                // Hiển thị thông tin sinh viên
+                document.getElementById('studentName').textContent = studentInfo.hoTen;
+                document.getElementById('className').textContent = studentInfo.tenLop || studentInfo.maLop;
+
+                // Lấy tất cả lịch thi
+                const lichthiResponse = await fetch(`${API_BASE_URL}/lichthi`);
+                if (!lichthiResponse.ok) throw new Error('Không thể tải lịch thi');
+
+                const lichthiData = await lichthiResponse.json();
+
+                // Lọc lịch thi của lớp sinh viên
+                allExams = lichthiData.data.filter(lt => lt.maLop === studentInfo.maLop);
+
+                // Sắp xếp theo ngày thi
+                allExams.sort((a, b) => new Date(a.ngayThi) - new Date(b.ngayThi));
+
+                // Cập nhật thống kê
+                updateStatistics();
+
+                // Render exam cards
+                renderExamCards();
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('examContent').style.display = 'block';
+
+            } catch (error) {
+                console.error('Lỗi:', error);
+                document.getElementById('loading').innerHTML = `
+                    <i class="fas fa-exclamation-triangle" style="background: linear-gradient(135deg, #ef4444, #dc2626); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
+                    <p style="color: #ef4444;">Không thể tải lịch thi. Vui lòng thử lại sau!</p>
+                `;
+            }
+        }
+
+        // Cập nhật thống kê
+        function updateStatistics() {
+            const now = new Date();
+            const upcomingExams = allExams.filter(exam => {
+                const examDate = new Date(exam.ngayThi);
+                const diffTime = examDate - now;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                return diffDays >= 0 && diffDays <= 7;
+            });
+
+            document.getElementById('totalExams').textContent = allExams.length;
+            document.getElementById('upcomingExams').textContent = upcomingExams.length;
+        }
+
+        // Xác định trạng thái kỳ thi
+        function getExamStatus(ngayThi) {
+            const now = new Date();
+            const examDate = new Date(ngayThi);
+            const diffTime = examDate - now;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffTime < 0) return 'passed';
+            if (diffDays <= 3) return 'soon';
+            return 'upcoming';
+        }
+
+        // Tính countdown
+        function getCountdown(ngayThi) {
+            const now = new Date();
+            const examDate = new Date(ngayThi);
+            const diffTime = examDate - now;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffTime < 0) {
+                const passedDays = Math.abs(diffDays);
+                return `Đã qua ${passedDays} ngày`;
+            }
+
+            if (diffDays === 0) return 'Hôm nay';
+            if (diffDays === 1) return 'Ngày mai';
+            return `Còn ${diffDays} ngày`;
+        }
+
+        // Format ngày giờ
+        function formatDateTime(dateString) {
+            const date = new Date(dateString);
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const year = date.getFullYear();
+            const hours = date.getHours().toString().padStart(2, '0');
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+
+            return {
+                date: `${day}/${month}/${year}`,
+                time: `${hours}:${minutes}`,
+                full: `${hours}:${minutes} - ${day}/${month}/${year}`
+            };
+        }
+
+        // Render exam cards
+        function renderExamCards() {
+            const container = document.getElementById('examCardsContainer');
+            const emptyState = document.getElementById('emptyState');
+            const statusFilter = document.getElementById('statusFilter').value;
+
+            container.innerHTML = '';
+
+            let filteredExams = allExams;
+            if (statusFilter === 'upcoming') {
+                filteredExams = allExams.filter(exam => getExamStatus(exam.ngayThi) !== 'passed');
+            } else if (statusFilter === 'passed') {
+                filteredExams = allExams.filter(exam => getExamStatus(exam.ngayThi) === 'passed');
+            }
+
+            if (filteredExams.length === 0) {
+                container.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            container.style.display = 'grid';
+            emptyState.style.display = 'none';
+
+            filteredExams.forEach(exam => {
+                const status = getExamStatus(exam.ngayThi);
+                const datetime = formatDateTime(exam.ngayThi);
+                const countdown = getCountdown(exam.ngayThi);
+
+                const statusBadgeText = {
+                    'soon': 'Sắp Thi',
+                    'upcoming': 'Sắp Tới',
+                    'passed': 'Đã Thi'
+                };
+
+                const card = document.createElement('div');
+                card.className = 'exam-card';
+                card.innerHTML = `
+                    <div class="exam-card-header">
+                        <div class="exam-card-title">
+                            <h3>${exam.tenMH}</h3>
+                            <small>${exam.maMH}</small>
+                        </div>
+                        <span class="status-badge ${status}">${statusBadgeText[status]}</span>
+                    </div>
+                    <div class="exam-card-body">
+                        <div class="exam-info-row">
+                            <i class="fas fa-calendar"></i>
+                            <span class="label">Ngày thi:</span>
+                            <span class="value">${datetime.date}</span>
+                        </div>
+                        <div class="exam-info-row">
+                            <i class="fas fa-clock"></i>
+                            <span class="label">Giờ thi:</span>
+                            <span class="value">${datetime.time}</span>
+                        </div>
+                        <div class="exam-info-row">
+                            <i class="fas fa-door-open"></i>
+                            <span class="label">Phòng thi:</span>
+                            <span class="value">${exam.phongThi || 'Chưa xác định'}</span>
+                        </div>
+                        ${exam.ghiChu ? `
+                        <div class="exam-info-row">
+                            <i class="fas fa-sticky-note"></i>
+                            <span class="label">Ghi chú:</span>
+                            <span class="value">${exam.ghiChu}</span>
+                        </div>` : ''}
+                    </div>
+                    ${status !== 'passed' ? `
+                    <div class="countdown-container">
+                        <div class="countdown-label">THỜI GIAN CÒN LẠI</div>
+                        <div class="countdown-value">${countdown}</div>
+                    </div>` : ''}
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        // ✅ THÊM CODE NÀY SAU DÒNG: const API_BASE_URL = 'http://localhost:3000/api';
+
+        // Load notification count
+        async function loadNotificationCount() {
+            try {
+                const maTK = sessionStorage.getItem('maTK');
+                if (!maTK) return;
+
+                const studentResponse = await fetch(`${API_BASE_URL}/students/by-account?maTK=${maTK}`);
+                if (!studentResponse.ok) return;
+
+                const studentInfo = await studentResponse.json();
+
+                const response = await fetch(`${API_BASE_URL}/feedback/student/${studentInfo.maSV}`);
+                if (!response.ok) return;
+
+                const feedbackList = await response.json();
+                const repliedCount = feedbackList.filter(fb => fb.phanHoiPhu).length;
+
+                const badge = document.getElementById('notificationBadge');
+                if (repliedCount > 0) {
+                    badge.textContent = repliedCount;
+                    badge.style.display = 'flex';
+                }
+            } catch (error) {
+                console.error('Lỗi tải thông báo:', error);
+            }
+        }
+
+        // Click vào chuông chuyển trang
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelector('.notification').addEventListener('click', () => {
+                window.location.href = 'xemphanhoi.html';
+            });
+
+            // Load notification khi trang load
+            loadNotificationCount();
+        });
+
+        // Event listeners
+        document.getElementById('statusFilter').addEventListener('change', renderExamCards);
+
+        // Load khi trang sẵn sàng
+        document.addEventListener('DOMContentLoaded', loadExamSchedule);
+    </script>
+</body>
+
+</html>
